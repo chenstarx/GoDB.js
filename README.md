@@ -1,6 +1,6 @@
 # Godb
 
-IndexedDB with Intuitive API
+IndexedDB with Intuitive API, bring a comfortable CRUD experience.
 
 
 # install
@@ -30,37 +30,49 @@ const schema = {
 const db = new Godb('testDB', schema);
 const user = db.table('user');
 
+// Create
 user.add({
-  name: 'luke',
-  age: 22
-})
-  .then(async () => {
-    console.log('\n');
-    console.log('add user luke:');
+  name: 'elain',
+  age: 23
+}).then((id) => {
+  console.log('\n');
+  console.log('elain added with id:', id);
+});
 
-    // show table in console
-    await user.consoleTable();
+crud();
 
-    console.log('add user elain:');
-    await user.add({
-      name: 'elain',
-      age: 24
-    });
+async function crud() {
 
-    await user.consoleTable();
+  // Create:
+  await user.add({
+    name: 'luke',
+    age: 22
+  });
 
-    console.log('set luke.age to 23:');
-    luke = await user.get({ name: 'luke' });
-    luke.age = 23;
-    await user.put(luke);
+  console.log('add user: luke');
+  await user.consoleTable(); // show table data in console
 
-    await user.consoleTable();
+  // Read:
+  const luke = await user.get({ name: 'luke' });
+  // const luke = await user.get({ id: 1 });
 
-    console.log('delete user luke:');
-    await user.delete({ name: 'luke' });
+  // Update:
+  luke.age = 23;
+  await user.put(luke);
 
-    await user.consoleTable();
+  console.log('update: set luke.age to 23');
+  await user.consoleTable();
 
-  })
-  .catch(err => console.error(err));
+  // Delete:
+  await user.delete({ name: 'luke' });
+
+  console.log('delete user: luke');
+  await user.consoleTable();
+
+}
+
 ```
+
+The codes above will generate logs in console:
+
+![crud_test](https://cdn.lukerr.com/docs/godb/crud-test.png)
