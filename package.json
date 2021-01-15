@@ -1,0 +1,45 @@
+{
+  "name": "godb",
+  "version": "0.2.0",
+  "description": "IndexedDB with Intuitive API",
+  "main": "./dist/godb.js",
+  "module": "./dist/godb.js",
+  "typings": "./dist/godb.d.ts",
+  "exports": {
+    "require": "./dist/godb.js",
+    "default": "./src/godb.ts"
+  },
+  "scripts": {
+    "dev": "rollup -w -c",
+    "build": "rimraf dist/* && rollup -c",
+    "test": "karma start karma.conf.js --log-level debug"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chenstarx/Godb.git"
+  },
+  "keywords": [
+    "indexeddb",
+    "typescript"
+  ],
+  "author": "chenstarx",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chenstarx/Godb/issues"
+  },
+  "homepage": "https://github.com/chenstarx/Godb#readme",
+  "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
+    "@babel/preset-typescript": "^7.12.7",
+    "@rollup/plugin-babel": "^5.2.2",
+    "@rollup/plugin-node-resolve": "^11.0.1",
+    "@rollup/plugin-typescript": "^8.1.0",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.35.1",
+    "rollup-plugin-dts": "^2.0.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "tslib": "^2.0.3",
+    "typescript": "^4.1.3"
+  }
+}
