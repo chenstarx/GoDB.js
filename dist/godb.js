@@ -165,14 +165,15 @@ var GodbTable = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             _this.godb.getDB(function (idb) {
                 try {
-                    var data_1 = [];
+                    var data_1 = {};
                     var store = idb
                         .transaction(_this.name, 'readonly')
                         .objectStore(_this.name);
                     store.openCursor().onsuccess = function (e) {
                         var cursor = e.target.result;
                         if (cursor) {
-                            data_1.push(__assign({ id: cursor.key }, cursor.value));
+                            delete cursor.value.id;
+                            data_1[cursor.key] = __assign({}, cursor.value);
                             cursor["continue"]();
                         }
                         else {
