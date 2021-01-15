@@ -168,7 +168,7 @@ export default class GodbTable {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         try {
-          const data = [];
+          const data = {};
           const store = idb
             .transaction(this.name, 'readonly')
             .objectStore(this.name);
@@ -176,10 +176,8 @@ export default class GodbTable {
           store.openCursor().onsuccess = (e) => {
             const cursor = (e.target as IDBRequest).result;
             if (cursor) {
-              data.push({
-                id: cursor.key,
-                ...cursor.value
-              });
+              delete cursor.value.id;
+              data[cursor.key] = { ...cursor.value };
               cursor.continue();
             } else {
               console.table(data);
