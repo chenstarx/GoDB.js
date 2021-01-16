@@ -5,7 +5,6 @@ import { GodbSchema, GodbTableSchema, GodbTableDict, GetDBCallback } from './glo
 export default class Godb {
 
   name: string;
-  schema: GodbSchema;
 
   idb: IDBDatabase;
   tables: GodbTableDict;
@@ -25,22 +24,25 @@ export default class Godb {
     this.tables = {};
     this._callbackQueue = [];
 
-    // save database name and schema
+    // save database's name
     this.name = name;
-    this.schema = schema || null;
+
+    // init tables
+    for (let table in schema)
+      this.tables[table] = new GodbTable(this, table, schema[table]);
 
     // open connection to the IndexedDB
     this.getDB();
-
-    // init tables
-    if (schema) {
-      for (let table in schema) {
-        this.tables[table] = new GodbTable(this, table, schema[table])
-      }
-    }
   }
 
-  table(table: string): GodbTable {
+  table(table: string, tableSchema?: GodbTableSchema): GodbTable {
+    if (!this.tables[table]) {
+      if (this.idb) {
+        // TODO: create a new objectStore when database is already opened
+      } else {
+        this.tables[table] = new GodbTable(this, table, tableSchema);
+      }
+    }
     return this.tables[table];
   }
 
@@ -186,7 +188,7 @@ export default class Godb {
       init: () => {
         // ONLY EXECUTED ONCE IN CONSTRUCTOR
         const database = this.name;
-        const schema = this.schema;
+        const tables = this.tables;
 
         this._connection = indexedDB.open(database);
 
@@ -234,8 +236,8 @@ export default class Godb {
           // create a new database
           if (oldVersion === 0 && newVersion > 0) {
             console.log(`Database['${database}'] created with version (${newVersion})`);
-            for (let table in schema) {
-              this.createTable(table, schema[table]);
+            for (let table in tables) {
+              this.createTable(table, tables[table].schema);
             }
           }
 
