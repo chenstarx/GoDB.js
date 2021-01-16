@@ -1,6 +1,23 @@
-# Godb
+# Godb.js
 
-IndexedDB with Intuitive API, bring a comfortable CRUD experience.
+IndexedDB with Intuitive API, bringing a comfortable CRUD experience.
+
+
+
+**Warining**: this project is currently in Alpha status, which means:
+
+- The software is not stable enough for production
+- Some APIs might have breaking changes in the future.
+
+
+
+TODO：
+
+- [ ] `Table.find()`
+- [ ] Global error handler for Exceptions
+- [ ] Check `schema` in CRUD operation
+- [ ] Make sure `schema` is sync with database structure
+
 
 
 # install
@@ -8,6 +25,7 @@ IndexedDB with Intuitive API, bring a comfortable CRUD experience.
 ```
 npm install godb
 ```
+
 
 
 # Usage
@@ -73,6 +91,6 @@ async function crud() {
 
 ```
 
-The codes above will generate logs in console:
+The codes above will generate following logs in console:
 
 ![crud_test](https://cdn.lukerr.com/docs/godb/crud-test.png)
