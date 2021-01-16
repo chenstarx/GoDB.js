@@ -1,4 +1,4 @@
-English | [中文文档]("./docs/README-zh.md")
+English | [中文文档](docs/README-zh.md)
 # Godb.js
 
 IndexedDB with Intuitive API, CRUD with one line of code.
