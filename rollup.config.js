@@ -6,7 +6,7 @@ import typescript from '@rollup/plugin-typescript';
 import { terser } from 'rollup-plugin-terser';
 import dts from 'rollup-plugin-dts';
 
-const extensions = ['.ts'];
+const extensions = ['.ts', '.js'];
 
 const config = [
   // es module, using original typescript compiler
@@ -34,7 +34,7 @@ const config = [
       dts()
     ]
   },
-  // .min.js, using babel to compile typescript
+  // .min.js, using babel for browser compatibility
   {
     input: './src/godb.ts',
     output: {
@@ -44,8 +44,8 @@ const config = [
     },
     plugins: [
       resolve({ extensions }),
+      typescript(),
       babel({
-        extensions,
         exclude: 'node_modules/**',
         babelHelpers: 'bundled'
       }),

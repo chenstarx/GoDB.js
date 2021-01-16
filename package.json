@@ -7,8 +7,7 @@
   "typings": "./dist/godb.d.ts",
   "scripts": {
     "dev": "rollup -w -c",
-    "build": "rimraf dist/* && rollup -c",
-    "test": "karma start karma.conf.js --log-level debug"
+    "build": "rimraf dist/* && rollup -c"
   },
   "repository": {
     "type": "git",
@@ -27,7 +26,6 @@
   "devDependencies": {
     "@babel/core": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
-    "@babel/preset-typescript": "^7.12.7",
     "@rollup/plugin-babel": "^5.2.2",
     "@rollup/plugin-node-resolve": "^11.0.1",
     "@rollup/plugin-typescript": "^8.1.0",
