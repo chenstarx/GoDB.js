@@ -1,6 +1,7 @@
+English | [中文文档]("./docs/README-zh.md")
 # Godb.js
 
-IndexedDB with Intuitive API, bringing a comfortable CRUD experience.
+IndexedDB with Intuitive API, CRUD with one line of code.
 
 
 
@@ -14,13 +15,16 @@ IndexedDB with Intuitive API, bringing a comfortable CRUD experience.
 TODO：
 
 - [ ] `Table.find()`
+- [ ] `Table.update()`
 - [ ] Global error handler for Exceptions
-- [ ] Check `schema` in CRUD operation
+- [ ] Check `schema` in CRUD operation if `schema` is defined
 - [ ] Make sure `schema` is sync with database structure
 
 
+Star this project if you think it is helpful, thanks~
 
-# install
+
+## install
 
 ```
 npm install godb
@@ -28,69 +32,94 @@ npm install godb
 
 
 
-# Usage
+## Usage
 
-A CRUD example:
+CRUD operations with one line of code:
 
 ``` javascript
 import Godb from 'godb';
 
-const schema = {
-  user: {
-    name: {
-      type: String,
-      unique: true
-    },
-    age: Number
-  }
-};
-
-const db = new Godb('testDB', schema);
-const user = db.table('user');
+const testDB = new Godb('testDB');
+const user = testDB.table('user');
 
 // Create
 user.add({
-  name: 'elain',
-  age: 23
-}).then((id) => {
-  console.log('\n');
-  console.log('elain added with id:', id);
-});
-
-crud();
-
-async function crud() {
-
-  // Create:
-  await user.add({
     name: 'luke',
     age: 22
-  });
-
-  console.log('add user: luke');
-  await user.consoleTable(); // show table data in console
-
-  // Read:
-  const luke = await user.get({ name: 'luke' });
-  // const luke = await user.get({ id: 1 });
-
-  // Update:
-  luke.age = 23;
-  await user.put(luke);
-
-  console.log('update: set luke.age to 23');
-  await user.consoleTable();
-
-  // Delete:
-  await user.delete({ name: 'luke' });
-
-  console.log('delete user: luke');
-  await user.consoleTable();
-
-}
-
+})
+  .then(id => user.get(id)) // Read, or user.get({ name: 'luke' })
+  .then(luke => user.put({ ...luke, age: 23 })) // Update
+  .then(id => user.delete(id)); // Delete
 ```
 
-The codes above will generate following logs in console:
+If you want to add many data at once:
+``` javascript
+const data = [
+    {
+        name: 'luke',
+        age: 22
+    },
+    {
+        name: 'elaine',
+        age: 23
+    }
+];
 
-![crud_test](https://cdn.lukerr.com/docs/godb/crud-test.png)
+user.addMany(data).then(() => user.consoleTable());
+```
+
+The method `user.consoleTable()` will print the `user` table in console:
+
+<img src="https://cdn.lukerr.com/docs/godb/add-many.png" alt="add-many" style="zoom:50%;" />
+
+Mention that the column `(index)` is the `id` of data
+
+Warning: do not call `addMany()` and `add()` at the same time,
+or the data order in database will be unexpected,
+please call `add()` after `await addMany()`
+
+
+## Schema
+
+You can use schema to define the database structure (optional)
+
+``` javascript
+import Godb from 'godb';
+
+// Define schema
+const schema = {
+    // Table user：
+    user: {
+        // Index 'name'
+        name: {
+            type: String,
+            unique: true
+        },
+        // Index 'age'
+        age: Number
+    }
+}
+
+const testDB = new Godb('testDB', schema);
+const user = testDB.table('user');
+
+const luke1 = {
+    name: 'luke'
+    age: 22
+};
+
+const luke2 = {
+    name: 'luke'
+    age: 19
+};
+
+user.add(luke1) // OK
+  .then(() => user.add(luke2)) // ERROR
+```
+
+The design of schema is inspired by `Mongoose`
+
+If `schema` is defined, `Godb` will check the data structure in operations like `Table.add()`: if the data structure does not fit in schema, report an error.
+
+In short, `Godb` will behave like MongoDB when the
+`schema` was not provided, but like MySQL if `schema` was defined.
