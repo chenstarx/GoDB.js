@@ -180,22 +180,31 @@ export default class GodbTable {
   }
 
   // showing 1000 items maximum in Chrome and Firefox
-  consoleTable(): Promise<void> {
+  consoleTable(limit: number = 1000): Promise<void> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         try {
+          if (limit > 1000) {
+            console.warn(`Table.consoleTable() accepts 'limit' no more than 1000`);
+            limit = 1000;
+          }
+
+          let count = 0;
           const data = {};
+
           const store = idb
             .transaction(this.name, 'readonly')
             .objectStore(this.name);
 
           store.openCursor().onsuccess = (e) => {
             const cursor = (e.target as IDBRequest).result;
-            if (cursor) {
-              delete cursor.value.id;
+            if (cursor && count < limit) {
+              count += 1;
               data[cursor.key] = { ...cursor.value };
+              delete data[cursor.key].id;
               cursor.continue();
             } else {
+              console.log(`Top ${limit} data in Table['${this.name}']:`);
               console.table(data);
               resolve();
             }
