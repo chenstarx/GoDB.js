@@ -1,53 +1,57 @@
-const schema = {
-  user: {
-    name: {
-      type: String,
-      unique: true
-    },
-    age: Number
-  }
-};
+function crudTest(dbName) {
+  if (!dbName) return alert('database name required');
 
-const db = new Godb('testDB', schema);
-const user = db.table('user');
+  const schema = {
+    user: {
+      name: {
+        type: String,
+        unique: true
+      },
+      age: Number
+    }
+  };
 
-// Create
-user.add({
-  name: 'elain',
-  age: 23
-}).then((id) => {
-  console.log('\n');
-  console.log('elain added with id:', id);
-});
+  const db = new Godb(dbName, schema);
+  const user = db.table('user');
 
-crud();
-
-async function crud() {
-
-  // Create:
-  await user.add({
-    name: 'luke',
-    age: 22
+  // Create
+  user.add({
+    name: 'elain',
+    age: 23
+  }).then((id) => {
+    console.log('\n');
+    console.log('elain added with id:', id);
   });
 
-  console.log('add user: luke');
-  await user.consoleTable(); // show table data in console
+  crud();
 
-  // Read:
-  const luke = await user.get({ name: 'luke' });
-  // const luke = await user.get({ id: 1 });
+  async function crud() {
 
-  // Update:
-  luke.age = 23;
-  await user.put(luke);
+    // Create:
+    await user.add({
+      name: 'luke',
+      age: 22
+    });
 
-  console.log('update: set luke.age to 23');
-  await user.consoleTable();
+    console.log('add user: luke');
+    await user.consoleTable(); // show table data in console
 
-  // Delete:
-  await user.delete({ name: 'luke' });
+    // Read:
+    const luke = await user.get({ name: 'luke' });
+    // const luke = await user.get({ id: 1 });
 
-  console.log('delete user: luke');
-  await user.consoleTable();
+    // Update:
+    luke.age = 23;
+    await user.put(luke);
 
+    console.log('update: set luke.age to 23');
+    await user.consoleTable();
+
+    // Delete:
+    await user.delete({ name: 'luke' });
+
+    console.log('delete user: luke');
+    await user.consoleTable();
+
+  }
 }
