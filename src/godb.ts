@@ -198,7 +198,7 @@ export default class Godb {
           // meaning that the database was already existed in browser
           if (!this.idb) {
             this.idb = result;
-            console.log(`Database '${database}' existed with version (${result.version})`);
+            console.log(`Database['${database}'] existed with version (${result.version})`);
           }
           console.log(`Local database '${database}' is opened!`);
 
@@ -229,11 +229,11 @@ export default class Godb {
           // get database instance
           this.idb = (target as IDBOpenDBRequest).result;
 
-          console.log(`Database '${database}' version changed from (${oldVersion}) to (${newVersion})`);
+          console.log(`Database['${database}'] version changed from (${oldVersion}) to (${newVersion})`);
 
           // create a new database
           if (oldVersion === 0 && newVersion > 0) {
-            console.log(`Database '${database}' created with version (${newVersion})`);
+            console.log(`Database['${database}'] created with version (${newVersion})`);
             for (let table in schema) {
               this.createTable(table, schema[table]);
             }
@@ -246,7 +246,7 @@ export default class Godb {
 
           // TODO: schema changed
           else if (oldVersion > 0 && newVersion > 0) {
-            console.log(`Database '${database}' was upgraded`);
+            console.log(`Database['${database}'] was upgraded`);
           }
         };
 
@@ -262,7 +262,7 @@ export default class Godb {
         this._connection.onblocked = (ev) => {
           const { newVersion, oldVersion } = ev as IDBVersionChangeEvent;
           throw Error(
-            `Database '${database}' is opening somewhere with version (${oldVersion})\
+            `Database['${database}'] is opening somewhere with version (${oldVersion})\
             thus new opening request to version (${newVersion}) is failed.`
           );
         };
