@@ -5,10 +5,6 @@
   "main": "./dist/godb.js",
   "module": "./dist/godb.js",
   "typings": "./dist/godb.d.ts",
-  "exports": {
-    "require": "./dist/godb.js",
-    "default": "./src/godb.ts"
-  },
   "scripts": {
     "dev": "rollup -w -c",
     "build": "rimraf dist/* && rollup -c",
@@ -16,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chenstarx/Godb.git"
+    "url": "git+https://github.com/chenstarx/Godb.js.git"
   },
   "keywords": [
     "indexeddb",
@@ -25,9 +21,9 @@
   "author": "chenstarx",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/chenstarx/Godb/issues"
+    "url": "https://github.com/chenstarx/Godb.js/issues"
   },
-  "homepage": "https://github.com/chenstarx/Godb#readme",
+  "homepage": "https://github.com/chenstarx/Godb.js#readme",
   "devDependencies": {
     "@babel/core": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
