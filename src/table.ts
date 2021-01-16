@@ -101,6 +101,22 @@ export default class GodbTable {
     });
   }
 
+  // TODO FIX: the order might be unexpected when
+  //  `addMany` and `add` were executing at the same time
+  addMany(data: Array<GodbInputData>): Promise<Array<number>> {
+    return new Promise(async (resolve, reject) => {
+      if (Array.isArray(data)) {
+        const id = [];
+        for (let item of data) {
+          id.push(await this.add(item));
+        }
+        resolve(id);
+      } else {
+        reject(new Error('Table.addMany() failed: input data should be an array'));
+      }
+    });
+  }
+
   // TODO: check data's schema
   // if data is not in table, `put` will add the data, otherwise update
   // TODO: check schema's unique key, which decides whether update or add data
