@@ -22,11 +22,9 @@ export default class GodbTable {
   }
 
   // TODO: check if criteria's key fits schema
-  get(criteria: GodbTableSearch): Promise<GodbData> {
+  get(criteria: GodbTableSearch | number): Promise<GodbData> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
-        const key = Object.keys(criteria)[0];
-        const value = criteria[key];
         try {
           const store = idb
             .transaction(this.name, 'readonly')
@@ -34,19 +32,37 @@ export default class GodbTable {
 
           // if the key is not unique, return one object with least id
           // TODO: warning user if the key is not unique
-          const request = key === 'id'
-            ? store.get(value)
-            : store.index(key).get(value);
 
-          request.onsuccess = (e) => {
+          const onSuccess = (e: Event) => {
             const { result } = e.target as IDBRequest;
             resolve(result);
-          };
+          }
 
-          request.onerror = (e) => {
+          const onError = (e: Event) => {
             const { error } = e.target as IDBRequest;
             reject(error);
-          };
+          }
+
+          if (typeof criteria === 'object') {
+            const key = Object.keys(criteria)[0];
+            const value = criteria[key];
+
+            const request = key === 'id'
+              ? store.get(value)
+              : store.index(key).get(value);
+
+            request.onsuccess = onSuccess;
+            request.onerror = onError;
+
+          } else if (typeof criteria === 'number') {
+            const request = store.get(criteria);
+
+            request.onsuccess = onSuccess;
+            request.onerror = onError;
+
+          } else {
+            reject(new Error('Table.get failed: invalid criteria'));
+          }
 
         } catch (err) {
           reject(err);
