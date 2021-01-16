@@ -24,6 +24,44 @@ var __assign = function() {
     return __assign.apply(this, arguments);
 };
 
+function __awaiter(thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+}
+
+function __generator(thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+}
+
 // TODO: GLOBAL ERROR HANDLER
 // TODO: optimizing for duplicated codes, make a global promise to handle error
 // TODO: make sure that schema is sync with objectStore
@@ -38,25 +76,37 @@ var GodbTable = /** @class */ (function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
             _this.godb.getDB(function (idb) {
-                var key = Object.keys(criteria)[0];
-                var value = criteria[key];
                 try {
                     var store = idb
                         .transaction(_this.name, 'readonly')
                         .objectStore(_this.name);
                     // if the key is not unique, return one object with least id
                     // TODO: warning user if the key is not unique
-                    var request = key === 'id'
-                        ? store.get(value)
-                        : store.index(key).get(value);
-                    request.onsuccess = function (e) {
+                    var onSuccess = function (e) {
                         var result = e.target.result;
                         resolve(result);
                     };
-                    request.onerror = function (e) {
+                    var onError = function (e) {
                         var error = e.target.error;
                         reject(error);
                     };
+                    if (typeof criteria === 'object') {
+                        var key = Object.keys(criteria)[0];
+                        var value = criteria[key];
+                        var request = key === 'id'
+                            ? store.get(value)
+                            : store.index(key).get(value);
+                        request.onsuccess = onSuccess;
+                        request.onerror = onError;
+                    }
+                    else if (typeof criteria === 'number') {
+                        var request = store.get(criteria);
+                        request.onsuccess = onSuccess;
+                        request.onerror = onError;
+                    }
+                    else {
+                        reject(new Error('Table.get() failed: invalid criteria'));
+                    }
                 }
                 catch (err) {
                     reject(err);
@@ -86,10 +136,45 @@ var GodbTable = /** @class */ (function () {
                     };
                 }
                 catch (err) {
-                    console.error(err);
+                    reject(err);
                 }
             });
         });
+    };
+    // TODO FIX: the order might be unexpected when
+    //  `addMany` and `add` were executing at the same time
+    GodbTable.prototype.addMany = function (data) {
+        var _this = this;
+        return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+            var id, _i, data_1, item, _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        if (!Array.isArray(data)) return [3 /*break*/, 5];
+                        id = [];
+                        _i = 0, data_1 = data;
+                        _c.label = 1;
+                    case 1:
+                        if (!(_i < data_1.length)) return [3 /*break*/, 4];
+                        item = data_1[_i];
+                        _b = (_a = id).push;
+                        return [4 /*yield*/, this.add(item)];
+                    case 2:
+                        _b.apply(_a, [_c.sent()]);
+                        _c.label = 3;
+                    case 3:
+                        _i++;
+                        return [3 /*break*/, 1];
+                    case 4:
+                        resolve(id);
+                        return [3 /*break*/, 6];
+                    case 5:
+                        reject(new Error('Table.addMany() failed: input data should be an array'));
+                        _c.label = 6;
+                    case 6: return [2 /*return*/];
+                }
+            });
+        }); });
     };
     // TODO: check data's schema
     // if data is not in table, `put` will add the data, otherwise update
@@ -160,24 +245,32 @@ var GodbTable = /** @class */ (function () {
     GodbTable.prototype.where = function () {
     };
     // showing 1000 items maximum in Chrome and Firefox
-    GodbTable.prototype.consoleTable = function () {
+    GodbTable.prototype.consoleTable = function (limit) {
         var _this = this;
+        if (limit === void 0) { limit = 1000; }
         return new Promise(function (resolve, reject) {
             _this.godb.getDB(function (idb) {
                 try {
-                    var data_1 = {};
+                    if (limit > 1000) {
+                        console.warn("Table.consoleTable() expects a limit no more than 1000");
+                        limit = 1000;
+                    }
+                    var count_1 = 0;
+                    var data_2 = {};
                     var store = idb
                         .transaction(_this.name, 'readonly')
                         .objectStore(_this.name);
                     store.openCursor().onsuccess = function (e) {
                         var cursor = e.target.result;
-                        if (cursor) {
-                            delete cursor.value.id;
-                            data_1[cursor.key] = __assign({}, cursor.value);
+                        if (cursor && count_1 < limit) {
+                            count_1 += 1;
+                            data_2[cursor.key] = __assign({}, cursor.value);
+                            delete data_2[cursor.key].id;
                             cursor["continue"]();
                         }
                         else {
-                            console.table(data_1);
+                            console.log("Data in Table['" + _this.name + "'] with limit of " + limit + ":");
+                            console.table(data_2);
                             resolve();
                         }
                     };
@@ -202,19 +295,21 @@ var Godb = /** @class */ (function () {
         // init params
         this.tables = {};
         this._callbackQueue = [];
-        // save database name and schema
+        // save database's name
         this.name = name;
-        this.schema = schema || null;
+        // init tables
+        for (var table in schema)
+            this.tables[table] = new GodbTable(this, table, schema[table]);
         // open connection to the IndexedDB
         this.getDB();
-        // init tables
-        if (schema) {
-            for (var table in schema) {
-                this.tables[table] = new GodbTable(this, table, schema[table]);
+    }
+    Godb.prototype.table = function (table, tableSchema) {
+        if (!this.tables[table]) {
+            if (this.idb) ;
+            else {
+                this.tables[table] = new GodbTable(this, table, tableSchema);
             }
         }
-    }
-    Godb.prototype.table = function (table) {
         return this.tables[table];
     };
     // init the database with schema
@@ -344,7 +439,7 @@ var Godb = /** @class */ (function () {
             init: function () {
                 // ONLY EXECUTED ONCE IN CONSTRUCTOR
                 var database = _this.name;
-                var schema = _this.schema;
+                var tables = _this.tables;
                 _this._connection = indexedDB.open(database);
                 _this._connection.onsuccess = function (ev) {
                     var _a;
@@ -353,7 +448,7 @@ var Godb = /** @class */ (function () {
                     // meaning that the database was already existed in browser
                     if (!_this.idb) {
                         _this.idb = result;
-                        console.log("Database '" + database + "' existed with version (" + result.version + ")");
+                        console.log("Database['" + database + "'] existed with version (" + result.version + ")");
                     }
                     console.log("Local database '" + database + "' is opened!");
                     // executing operations invoked by user at State 2
@@ -378,12 +473,12 @@ var Godb = /** @class */ (function () {
                     var oldVersion = ev.oldVersion, newVersion = ev.newVersion, target = ev.target;
                     // get database instance
                     _this.idb = target.result;
-                    console.log("Database '" + database + "' version changed from (" + oldVersion + ") to (" + newVersion + ")");
+                    console.log("Database['" + database + "'] version changed from (" + oldVersion + ") to (" + newVersion + ")");
                     // create a new database
                     if (oldVersion === 0 && newVersion > 0) {
-                        console.log("Database '" + database + "' created with version (" + newVersion + ")");
-                        for (var table in schema) {
-                            _this.createTable(table, schema[table]);
+                        console.log("Database['" + database + "'] created with version (" + newVersion + ")");
+                        for (var table in tables) {
+                            _this.createTable(table, tables[table].schema);
                         }
                     }
                     // TODO: database was dropped somewhere while still opening
@@ -392,7 +487,7 @@ var Godb = /** @class */ (function () {
                     }
                     // TODO: schema changed
                     else if (oldVersion > 0 && newVersion > 0) {
-                        console.log("Database '" + database + "' was upgraded");
+                        console.log("Database['" + database + "'] was upgraded");
                     }
                 };
                 _this._connection.onerror = function (ev) {
@@ -402,7 +497,7 @@ var Godb = /** @class */ (function () {
                 };
                 _this._connection.onblocked = function (ev) {
                     var _a = ev, newVersion = _a.newVersion, oldVersion = _a.oldVersion;
-                    throw Error("Database '" + database + "' is opening somewhere with version (" + oldVersion + ")            thus new opening request to version (" + newVersion + ") is failed.");
+                    throw Error("Database['" + database + "'] is opening somewhere with version (" + oldVersion + ")            thus new opening request to version (" + newVersion + ") is failed.");
                 };
             }
         }[this.getDBState()])();

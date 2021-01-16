@@ -34,19 +34,19 @@ declare class GodbTable {
     godb: Godb;
     schema: GodbTableSchema;
     constructor(godb: Godb, name: string, schema: GodbTableSchema);
-    get(criteria: GodbTableSearch): Promise<GodbData>;
+    get(criteria: GodbTableSearch | number): Promise<GodbData>;
     add(data: GodbInputData): Promise<number>;
+    addMany(data: Array<GodbInputData>): Promise<Array<number>>;
     put(data: GodbData): Promise<number>;
     update(): void;
     delete(criteria: GodbTableSearch): Promise<void>;
     find(fn: Function): void;
     where(): void;
-    consoleTable(): Promise<void>;
+    consoleTable(limit?: number): Promise<void>;
 }
 
 declare class Godb$1 {
     name: string;
-    schema: GodbSchema;
     idb: IDBDatabase;
     tables: GodbTableDict;
     private _closed;
@@ -55,7 +55,7 @@ declare class Godb$1 {
     onOpened: Function;
     onClosed: Function;
     constructor(name: string, schema?: GodbSchema);
-    table(table: string): GodbTable;
+    table(table: string, tableSchema?: GodbTableSchema): GodbTable;
     init(schema: GodbSchema): void;
     close(): void;
     drop(): Promise<Event>;
