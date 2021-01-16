@@ -61,7 +61,7 @@ export default class GodbTable {
             request.onerror = onError;
 
           } else {
-            reject(new Error('Table.get failed: invalid criteria'));
+            reject(new Error('Table.get() failed: invalid criteria'));
           }
 
         } catch (err) {
@@ -185,7 +185,7 @@ export default class GodbTable {
       this.godb.getDB((idb) => {
         try {
           if (limit > 1000) {
-            console.warn(`Table.consoleTable() accepts 'limit' no more than 1000`);
+            console.warn(`Table.consoleTable() expects a limit no more than 1000`);
             limit = 1000;
           }
 
@@ -204,7 +204,7 @@ export default class GodbTable {
               delete data[cursor.key].id;
               cursor.continue();
             } else {
-              console.log(`Top ${limit} data in Table['${this.name}']:`);
+              console.log(`Data in Table['${this.name}'] with limit of ${limit}:`);
               console.table(data);
               resolve();
             }
