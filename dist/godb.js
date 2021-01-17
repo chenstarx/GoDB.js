@@ -240,6 +240,30 @@ var GodbTable = /** @class */ (function () {
     };
     // find by a function
     GodbTable.prototype.find = function (fn) {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            _this.godb.getDB(function (idb) {
+                try {
+                    var store = idb
+                        .transaction(_this.name, 'readonly')
+                        .objectStore(_this.name);
+                    store.openCursor().onsuccess = function (e) {
+                        var cursor = e.target.result;
+                        if (cursor) {
+                            if (fn(cursor.value))
+                                return resolve(cursor.value);
+                            cursor["continue"]();
+                        }
+                        else {
+                            resolve(null);
+                        }
+                    };
+                }
+                catch (err) {
+                    reject(err);
+                }
+            });
+        });
     };
     // TODO: people.where('age').below(22).toArray()
     GodbTable.prototype.where = function () {

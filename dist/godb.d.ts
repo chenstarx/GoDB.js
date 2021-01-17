@@ -12,6 +12,7 @@ interface GodbTableSearch {
     [key: string]: number | string;
 }
 declare type GetDBCallback = (idb: IDBDatabase) => void;
+declare type TableFindFunction = (item?: GodbData) => boolean;
 declare type TableKeyTypes = NumberConstructor | StringConstructor | BooleanConstructor | DateConstructor | ObjectConstructor | ArrayConstructor;
 interface TableKey {
     type: TableKeyTypes;
@@ -40,7 +41,7 @@ declare class GodbTable {
     put(data: GodbData): Promise<number>;
     update(): void;
     delete(criteria: GodbTableSearch): Promise<void>;
-    find(fn: Function): void;
+    find(fn: TableFindFunction): Promise<GodbData>;
     where(): void;
     consoleTable(limit?: number): Promise<void>;
 }
