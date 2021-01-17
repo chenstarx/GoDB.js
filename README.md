@@ -14,7 +14,7 @@ IndexedDB with Intuitive API, CRUD with one line of code.
 
 TODO：
 
-- [ ] `Table.find()`
+- [x] `Table.find()`
 - [ ] `Table.update()`
 - [ ] Global error handler for Exceptions
 - [ ] Check `schema` in CRUD operation if `schema` is defined

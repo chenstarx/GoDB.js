@@ -24,6 +24,8 @@ export interface GodbTableSearch {
 
 export type GetDBCallback = (idb: IDBDatabase) => void;
 
+export type TableFindFunction = (item?: GodbData) => boolean;
+
 export type TableKeyTypes =
   NumberConstructor
   | StringConstructor

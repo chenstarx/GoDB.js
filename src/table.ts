@@ -1,4 +1,11 @@
-import { Godb, GodbData, GodbInputData, GodbTableSchema, GodbTableSearch } from './global/types';
+import {
+  Godb,
+  GodbData,
+  GodbInputData,
+  GodbTableSchema,
+  GodbTableSearch,
+  TableFindFunction
+} from './global/types';
 
 // TODO: GLOBAL ERROR HANDLER
 // TODO: optimizing for duplicated codes, make a global promise to handle error
@@ -186,8 +193,29 @@ export default class GodbTable {
   }
 
   // find by a function
-  find(fn: Function) {
+  find(fn: TableFindFunction): Promise<GodbData> {
+    return new Promise((resolve, reject) => {
+      this.godb.getDB((idb) => {
+        try {
+          const store = idb
+            .transaction(this.name, 'readonly')
+            .objectStore(this.name);
 
+          store.openCursor().onsuccess = (e) => {
+            const cursor = (e.target as IDBRequest).result;
+            if (cursor) {
+              if (fn(cursor.value))
+                return resolve(cursor.value);
+              cursor.continue();
+            } else {
+              resolve(null);
+            }
+          }
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
   }
 
   // TODO: people.where('age').below(22).toArray()
