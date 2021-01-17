@@ -42,6 +42,7 @@ declare class GodbTable {
     update(): void;
     delete(criteria: GodbTableSearch): Promise<void>;
     find(fn: TableFindFunction): Promise<GodbData>;
+    findAll(fn: TableFindFunction): Promise<Array<GodbData>>;
     where(): void;
     consoleTable(limit?: number): Promise<void>;
 }

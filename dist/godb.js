@@ -265,6 +265,34 @@ var GodbTable = /** @class */ (function () {
             });
         });
     };
+    // return all results by a find function
+    GodbTable.prototype.findAll = function (fn) {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            _this.godb.getDB(function (idb) {
+                try {
+                    var store = idb
+                        .transaction(_this.name, 'readonly')
+                        .objectStore(_this.name);
+                    var data_2 = [];
+                    store.openCursor().onsuccess = function (e) {
+                        var cursor = e.target.result;
+                        if (cursor) {
+                            if (fn(cursor.value))
+                                data_2.push(cursor.value);
+                            cursor["continue"]();
+                        }
+                        else {
+                            resolve(data_2);
+                        }
+                    };
+                }
+                catch (err) {
+                    reject(err);
+                }
+            });
+        });
+    };
     // TODO: people.where('age').below(22).toArray()
     GodbTable.prototype.where = function () {
     };
@@ -280,7 +308,7 @@ var GodbTable = /** @class */ (function () {
                         limit = 1000;
                     }
                     var count_1 = 0;
-                    var data_2 = {};
+                    var data_3 = {};
                     var store = idb
                         .transaction(_this.name, 'readonly')
                         .objectStore(_this.name);
@@ -288,13 +316,13 @@ var GodbTable = /** @class */ (function () {
                         var cursor = e.target.result;
                         if (cursor && count_1 < limit) {
                             count_1 += 1;
-                            data_2[cursor.key] = __assign({}, cursor.value);
-                            delete data_2[cursor.key].id;
+                            data_3[cursor.key] = __assign({}, cursor.value);
+                            delete data_3[cursor.key].id;
                             cursor["continue"]();
                         }
                         else {
                             console.log("Data in Table['" + _this.name + "'] with limit of " + limit + ":");
-                            console.table(data_2);
+                            console.table(data_3);
                             resolve();
                         }
                     };
