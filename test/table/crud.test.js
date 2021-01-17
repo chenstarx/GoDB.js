@@ -14,26 +14,23 @@ function crudTest(dbName) {
   const db = new Godb(dbName, schema);
   const user = db.table('user');
 
-  // Create
-  user.add({
-    name: 'elain',
-    age: 23
-  }).then((id) => {
-    console.log('\n');
-    console.log('elain added with id:', id);
-  });
-
   crud();
 
   async function crud() {
 
     // Create:
-    await user.add({
-      name: 'luke',
-      age: 22
-    });
+    await user.addMany([
+      {
+        name: 'luke',
+        age: 22
+      },
+      {
+        name: 'elaine',
+        age: 23
+      }
+    ]);
 
-    console.log('add user: luke');
+    console.log('add users: luke and elaine');
     await user.consoleTable(); // show table data in console
 
     // Read:

@@ -357,10 +357,8 @@ var Godb = /** @class */ (function () {
     }
     Godb.prototype.table = function (table, tableSchema) {
         if (!this.tables[table]) {
-            if (this.idb) ;
-            else {
-                this.tables[table] = new GodbTable(this, table, tableSchema);
-            }
+            if (this.idb && tableSchema && typeof tableSchema === 'object') ;
+            this.tables[table] = new GodbTable(this, table, tableSchema);
         }
         return this.tables[table];
     };
