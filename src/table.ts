@@ -218,6 +218,34 @@ export default class GodbTable {
     });
   }
 
+  // return all results by a find function
+  findAll(fn: TableFindFunction): Promise<Array<GodbData>> {
+    return new Promise((resolve, reject) => {
+      this.godb.getDB((idb) => {
+        try {
+          const store = idb
+            .transaction(this.name, 'readonly')
+            .objectStore(this.name);
+
+          const data = [];
+
+          store.openCursor().onsuccess = (e) => {
+            const cursor = (e.target as IDBRequest).result;
+            if (cursor) {
+              if (fn(cursor.value))
+                data.push(cursor.value);
+              cursor.continue();
+            } else {
+              resolve(data);
+            }
+          }
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+  }
+
   // TODO: people.where('age').below(22).toArray()
   where() {
 
