@@ -37,11 +37,10 @@ export default class Godb {
 
   table(table: string, tableSchema?: GodbTableSchema): GodbTable {
     if (!this.tables[table]) {
-      if (this.idb) {
+      if (this.idb && tableSchema && typeof tableSchema === 'object') {
         // TODO: create a new objectStore when database is already opened
-      } else {
-        this.tables[table] = new GodbTable(this, table, tableSchema);
       }
+      this.tables[table] = new GodbTable(this, table, tableSchema);
     }
     return this.tables[table];
   }
