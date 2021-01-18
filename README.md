@@ -14,7 +14,6 @@ IndexedDB with Intuitive API, CRUD with one line of code.
 
 TODO：
 
-- [x] `Table.find()`
 - [ ] `Table.update()`
 - [ ] Global error handler for Exceptions
 - [ ] Check `schema` in CRUD operation if `schema` is defined
@@ -42,12 +41,13 @@ import Godb from 'godb';
 const testDB = new Godb('testDB');
 const user = testDB.table('user');
 
-// Create
-user.add({
-    name: 'luke',
-    age: 22
-})
-  .then(id => user.get(id)) // Read, or user.get({ name: 'luke' })
+const luke = {
+  name: 'luke',
+  age: 22
+}
+
+user.add(luke) // Create
+  .then(id => user.get(id)) // Read
   .then(luke => user.put({ ...luke, age: 23 })) // Update
   .then(id => user.delete(id)); // Delete
 ```
@@ -78,6 +78,37 @@ Warning: do not call `addMany()` and `add()` at the same time,
 or the data order in database will be unexpected,
 please call `add()` after `await addMany()`
 
+**Table.find()**
+
+When you want to find some data in a table, you can use `Table.find()`
+
+```javascript
+const data = [
+    {
+        name: 'luke',
+        age: 22
+    },
+    {
+        name: 'elaine',
+        age: 23
+    }
+];
+
+user.addMany(data)
+  .then(() => {
+    user.find(item => {
+      return item.age > 22;
+    })
+      .then(result => console.log(result)); // { name: 'luke', age: 23 }
+  });
+```
+
+The usage is very similar to JavaScript's `Array.find()`
+
+This method will use `IDBCursor` to traverse a table, and return the first matched result
+
+If you want to get all the matched results, use `Table.findAll()`
+
 
 ## Schema
 
@@ -93,7 +124,7 @@ const schema = {
         // Index 'name'
         name: {
             type: String,
-            unique: true
+            unique: true // no repeat value
         },
         // Index 'age'
         age: Number
@@ -103,19 +134,20 @@ const schema = {
 const testDB = new Godb('testDB', schema);
 const user = testDB.table('user');
 
-const luke1 = {
+const luke = {
     name: 'luke'
     age: 22
 };
 
-const luke2 = {
-    name: 'luke'
-    age: 19
-};
-
-user.add(luke1) // OK
-  .then(() => user.add(luke2)) // ERROR
+user.add(luke) // OK
+  .then(() => user.get({ name: 'luke' })) // index as search criteria
+  .then(luke1 => user.add(luke1)) // ERROR, since the name should be unique
 ```
+
+When schema is defined, you can use the indexes as search criteria in the
+`Table.get()` method.
+
+It is faster than `Table.find()`, especially when the table has huge amounts of data
 
 The design of schema is inspired by `Mongoose`
 
