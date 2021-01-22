@@ -99,7 +99,7 @@ user.addMany(data)
     user.find(item => {
       return item.age > 22;
     })
-      .then(result => console.log(result)); // { name: 'luke', age: 23 }
+      .then(result => console.log(result)); // { name: 'elaine', age: 23 }
   });
 ```
 
@@ -108,6 +108,16 @@ The usage is very similar to JavaScript's `Array.find()`
 This method will use `IDBCursor` to traverse a table, and return the first matched result
 
 If you want to get all the matched results, use `Table.findAll()`
+
+**Table.find() vs Table.get()**
+
+Both `Table.find()` and `Table.get()` can be used to find data in a table.
+
+`Table.get()` uses the indexes to search a table, while `Table.find()` will traverse a table and return the results that match the criteria.
+
+Therefore, `Table.get()` has a better performance, especially when the table is large, but it only accepts the table indexes as search criteria.
+
+`Table.find()` is more flexible, since it accepts a function as search criteria.
 
 
 ## Schema
