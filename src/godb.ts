@@ -137,6 +137,7 @@ export default class Godb {
       console.log(`Table['${table}'] created in Database['${idb.name}']`);
 
       for (let index in schema) {
+        if (index === 'id') continue;
         const unique = !!schema[index]['unique'];
         objectStore.createIndex(index, index, { unique })
         console.log(`Index['${index}'] created in Table['${table}'], Database['${idb.name}']`)
