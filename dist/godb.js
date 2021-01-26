@@ -128,7 +128,7 @@ var GodbTable = /** @class */ (function () {
                     // TODO: according to MDN, `onsuccess` does not exactly mean a successful adding
                     request.onsuccess = function (e) {
                         var result = e.target.result;
-                        resolve(result);
+                        resolve(__assign(__assign({}, data), { id: result }));
                     };
                     request.onerror = function (e) {
                         var error = e.target.error;
@@ -146,18 +146,18 @@ var GodbTable = /** @class */ (function () {
     GodbTable.prototype.addMany = function (data) {
         var _this = this;
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-            var id, _i, data_1, item, _a, _b;
+            var arr, _i, data_1, item, _a, _b;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
                         if (!Array.isArray(data)) return [3 /*break*/, 5];
-                        id = [];
+                        arr = [];
                         _i = 0, data_1 = data;
                         _c.label = 1;
                     case 1:
                         if (!(_i < data_1.length)) return [3 /*break*/, 4];
                         item = data_1[_i];
-                        _b = (_a = id).push;
+                        _b = (_a = arr).push;
                         return [4 /*yield*/, this.add(item)];
                     case 2:
                         _b.apply(_a, [_c.sent()]);
@@ -166,7 +166,7 @@ var GodbTable = /** @class */ (function () {
                         _i++;
                         return [3 /*break*/, 1];
                     case 4:
-                        resolve(id);
+                        resolve(arr);
                         return [3 /*break*/, 6];
                     case 5:
                         reject(new Error('Table.addMany() failed: input data should be an array'));
@@ -197,7 +197,7 @@ var GodbTable = /** @class */ (function () {
                     // TODO: according to MDN, `onsuccess` does not exactly mean a successful adding
                     request.onsuccess = function (e) {
                         var result = e.target.result;
-                        resolve(result);
+                        resolve(__assign(__assign({}, data), { id: result }));
                     };
                     request.onerror = function (e) {
                         var error = e.target.error;
@@ -343,15 +343,21 @@ var indexedDB = global.indexedDB ||
     global.msIndexedDB;
 
 var Godb = /** @class */ (function () {
-    function Godb(name, schema) {
+    function Godb(name, config) {
         // init params
         this.tables = {};
         this._callbackQueue = [];
         // save database's name
         this.name = name;
-        // init tables
-        for (var table in schema)
-            this.tables[table] = new GodbTable(this, table, schema[table]);
+        // settings
+        if (config) {
+            var schema = config.schema, version = config.version;
+            if (version)
+                this.version = version;
+            // init tables
+            for (var table in schema)
+                this.tables[table] = new GodbTable(this, table, schema[table]);
+        }
         // open connection to the IndexedDB
         this.getDB();
     }
@@ -432,10 +438,10 @@ var Godb = /** @class */ (function () {
                 autoIncrement: true
             });
             console.log("Table['" + table + "'] created in Database['" + idb.name + "']");
-            for (var key in schema) {
-                var unique = !!schema[key]['unique'];
-                objectStore.createIndex(key, key, { unique: unique });
-                console.log("Key['" + key + "'] created in Table['" + table + "'], Database['" + idb.name + "']");
+            for (var index in schema) {
+                var unique = !!schema[index]['unique'];
+                objectStore.createIndex(index, index, { unique: unique });
+                console.log("Index['" + index + "'] created in Table['" + table + "'], Database['" + idb.name + "']");
             }
         }
     };
@@ -490,7 +496,10 @@ var Godb = /** @class */ (function () {
                 // ONLY EXECUTED ONCE IN CONSTRUCTOR
                 var database = _this.name;
                 var tables = _this.tables;
-                _this._connection = indexedDB.open(database);
+                if (_this.version)
+                    _this._connection = indexedDB.open(database, _this.version);
+                else
+                    _this._connection = indexedDB.open(database);
                 _this._connection.onsuccess = function (ev) {
                     var _a;
                     var result = (_this._connection || ev.target).result;
@@ -539,6 +548,7 @@ var Godb = /** @class */ (function () {
                     else if (oldVersion > 0 && newVersion > 0) {
                         console.log("Database['" + database + "'] was upgraded");
                     }
+                    _this.version = newVersion;
                 };
                 _this._connection.onerror = function (ev) {
                     var error = ev.target.error;

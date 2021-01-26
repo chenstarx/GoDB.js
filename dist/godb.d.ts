@@ -1,27 +1,31 @@
 declare type PrimitiveType = number | string | boolean | null;
-declare type DataType = PrimitiveType | object;
+declare type GodbDataType = PrimitiveType | object;
 declare type Godb = Godb$1;
 interface GodbData {
     id: number;
-    [key: string]: DataType | Array<DataType>;
+    [key: string]: GodbDataType | Array<GodbDataType>;
 }
 interface GodbInputData {
-    [key: string]: DataType | Array<DataType>;
+    [key: string]: GodbDataType | Array<GodbDataType>;
 }
 interface GodbTableSearch {
     [key: string]: number | string;
 }
 declare type GetDBCallback = (idb: IDBDatabase) => void;
 declare type TableFindFunction = (item?: GodbData) => boolean;
-declare type TableKeyTypes = NumberConstructor | StringConstructor | BooleanConstructor | DateConstructor | ObjectConstructor | ArrayConstructor;
-interface TableKey {
-    type: TableKeyTypes;
+declare type TableIndexTypes = NumberConstructor | StringConstructor | BooleanConstructor | DateConstructor | ObjectConstructor | ArrayConstructor;
+interface TableIndex {
+    type: TableIndexTypes;
     unique?: boolean;
     default?: any;
     ref?: string;
 }
+interface GodbConfig {
+    version?: number;
+    schema?: GodbSchema;
+}
 interface GodbTableSchema {
-    [key: string]: TableKey | TableKeyTypes;
+    [key: string]: TableIndex | TableIndexTypes;
 }
 interface GodbSchema {
     [table: string]: GodbTableSchema;
@@ -36,9 +40,9 @@ declare class GodbTable {
     schema: GodbTableSchema;
     constructor(godb: Godb, name: string, schema: GodbTableSchema);
     get(criteria: GodbTableSearch | number): Promise<GodbData>;
-    add(data: GodbInputData): Promise<number>;
-    addMany(data: Array<GodbInputData>): Promise<Array<number>>;
-    put(data: GodbData): Promise<number>;
+    add(data: GodbInputData): Promise<GodbData>;
+    addMany(data: Array<GodbInputData>): Promise<Array<GodbData>>;
+    put(data: GodbData): Promise<GodbData>;
     update(): void;
     delete(criteria: GodbTableSearch): Promise<void>;
     find(fn: TableFindFunction): Promise<GodbData>;
@@ -49,6 +53,7 @@ declare class GodbTable {
 
 declare class Godb$1 {
     name: string;
+    version: number;
     idb: IDBDatabase;
     tables: GodbTableDict;
     private _closed;
@@ -56,7 +61,7 @@ declare class Godb$1 {
     private _callbackQueue;
     onOpened: Function;
     onClosed: Function;
-    constructor(name: string, schema?: GodbSchema);
+    constructor(name: string, config?: GodbConfig);
     table(table: string, tableSchema?: GodbTableSchema): GodbTable;
     init(schema: GodbSchema): void;
     close(): void;
