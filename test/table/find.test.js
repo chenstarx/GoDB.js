@@ -11,7 +11,7 @@ function findTest(dbName) {
     }
   };
 
-  const db = new Godb(dbName, schema);
+  const db = new Godb(dbName, { schema });
   const user = db.table('user');
 
   crud();
