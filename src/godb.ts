@@ -1,10 +1,11 @@
 import GodbTable from './table';
 import { indexedDB } from './global/window';
-import { GodbSchema, GodbTableSchema, GodbTableDict, GetDBCallback } from './global/types';
+import { GodbConfig, GodbSchema, GodbTableSchema, GodbTableDict, GetDBCallback } from './global/types';
 
 export default class Godb {
 
   name: string;
+  version: number;
 
   idb: IDBDatabase;
   tables: GodbTableDict;
@@ -18,7 +19,7 @@ export default class Godb {
   onOpened: Function;
   onClosed: Function;
 
-  constructor(name: string, schema?: GodbSchema) {
+  constructor(name: string, config?: GodbConfig) {
 
     // init params
     this.tables = {};
@@ -27,9 +28,19 @@ export default class Godb {
     // save database's name
     this.name = name;
 
-    // init tables
-    for (let table in schema)
-      this.tables[table] = new GodbTable(this, table, schema[table]);
+    // settings
+    if (config) {
+
+      const { schema, version } = config;
+
+      if (version)
+        this.version = version;
+
+      // init tables
+      for (let table in schema)
+        this.tables[table] = new GodbTable(this, table, schema[table]);
+
+    }
 
     // open connection to the IndexedDB
     this.getDB();
@@ -189,7 +200,10 @@ export default class Godb {
         const database = this.name;
         const tables = this.tables;
 
-        this._connection = indexedDB.open(database);
+        if (this.version)
+          this._connection = indexedDB.open(database, this.version);
+        else
+          this._connection = indexedDB.open(database);
 
         this._connection.onsuccess = (ev) => {
 
@@ -249,6 +263,8 @@ export default class Godb {
           else if (oldVersion > 0 && newVersion > 0) {
             console.log(`Database['${database}'] was upgraded`);
           }
+
+          this.version = newVersion;
         };
 
         this._connection.onerror = (ev) => {

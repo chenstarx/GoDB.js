@@ -35,10 +35,15 @@ export type TableKeyTypes =
   | ArrayConstructor;
 
 export interface TableKey {
-  type: TableKeyTypes,
-  unique?: boolean,
-  default?: any,
-  ref?: string,
+  type: TableKeyTypes
+  unique?: boolean
+  default?: any
+  ref?: string
+}
+
+export interface GodbConfig {
+  version?: number
+  schema?: GodbSchema
 }
 
 export interface GodbTableSchema {
