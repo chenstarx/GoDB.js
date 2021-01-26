@@ -2,7 +2,7 @@ import GodbClass from '../godb';
 import GodbTableClass from '../table';
 
 type PrimitiveType = number | string | boolean | null;
-type DataType = PrimitiveType | object;
+type GodbDataType = PrimitiveType | object;
 
 export type Godb = GodbClass;
 
@@ -10,11 +10,11 @@ export type GodbTable = GodbTableClass;
 
 export interface GodbData {
   id: number,
-  [key: string]: DataType | Array<DataType>
+  [key: string]: GodbDataType | Array<GodbDataType>
 }
 
 export interface GodbInputData {
-  [key: string]: DataType | Array<DataType>
+  [key: string]: GodbDataType | Array<GodbDataType>
 }
 
 // some problems here
@@ -55,7 +55,7 @@ export interface GodbSchema {
 }
 
 export interface GodbTableDict {
-  [table: string]: GodbTableClass;
+  [table: string]: GodbTableClass
 }
 
 // Test for types checking:
