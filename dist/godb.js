@@ -439,6 +439,8 @@ var Godb = /** @class */ (function () {
             });
             console.log("Table['" + table + "'] created in Database['" + idb.name + "']");
             for (var index in schema) {
+                if (index === 'id')
+                    continue;
                 var unique = !!schema[index]['unique'];
                 objectStore.createIndex(index, index, { unique: unique });
                 console.log("Index['" + index + "'] created in Table['" + table + "'], Database['" + idb.name + "']");

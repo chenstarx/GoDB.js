@@ -1,6 +1,6 @@
 {
   "name": "godb",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "IndexedDB with Intuitive API",
   "main": "./dist/godb.js",
   "module": "./dist/godb.js",
