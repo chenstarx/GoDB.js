@@ -26,7 +26,7 @@ export type GetDBCallback = (idb: IDBDatabase) => void;
 
 export type TableFindFunction = (item?: GodbData) => boolean;
 
-export type TableKeyTypes =
+export type TableIndexTypes =
   NumberConstructor
   | StringConstructor
   | BooleanConstructor
@@ -34,8 +34,8 @@ export type TableKeyTypes =
   | ObjectConstructor
   | ArrayConstructor;
 
-export interface TableKey {
-  type: TableKeyTypes
+export interface TableIndex {
+  type: TableIndexTypes
   unique?: boolean
   default?: any
   ref?: string
@@ -47,7 +47,7 @@ export interface GodbConfig {
 }
 
 export interface GodbTableSchema {
-  [key: string]: TableKey | TableKeyTypes
+  [key: string]: TableIndex | TableIndexTypes
 }
 
 export interface GodbSchema {
