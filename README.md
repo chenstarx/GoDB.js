@@ -41,15 +41,15 @@ import Godb from 'godb';
 const testDB = new Godb('testDB');
 const user = testDB.table('user');
 
-const luke = {
+const data = {
   name: 'luke',
   age: 22
 }
 
-user.add(luke) // Create
-  .then(id => user.get(id)) // Read
+user.add(data) // Create
+  .then(luke => user.get(luke.id)) // Read
   .then(luke => user.put({ ...luke, age: 23 })) // Update
-  .then(id => user.delete(id)); // Delete
+  .then(luke => user.delete(luke.id)); // Delete
 ```
 
 If you want to add many data at once:
@@ -99,7 +99,8 @@ user.addMany(data)
     user.find(item => {
       return item.age > 22;
     })
-      .then(result => console.log(result)); // { name: 'elaine', age: 23 }
+      .then(result => console.log(result));
+      // { name: 'elaine', age: 23 }
   });
 ```
 
@@ -144,14 +145,14 @@ const schema = {
 const testDB = new Godb('testDB', { schema }); // { schema: schema }
 const user = testDB.table('user');
 
-const luke = {
+const data = {
     name: 'luke'
     age: 22
 };
 
-user.add(luke) // OK
+user.add(data) // OK
   .then(() => user.get({ name: 'luke' })) // index as search criteria
-  .then(luke1 => user.add(luke1)) // ERROR, since the name should be unique
+  .then(luke => user.add(luke)) // ERROR, since the name should be unique
 ```
 
 When schema is defined, you can use the indexes as search criteria in the
