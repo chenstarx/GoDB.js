@@ -1,12 +1,9 @@
 import path from 'path';
 import pkg from './package.json';
 import babel from '@rollup/plugin-babel';
-import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import { terser } from 'rollup-plugin-terser';
 import dts from 'rollup-plugin-dts';
-
-const extensions = ['.ts', '.js'];
 
 const config = [
   // es module, using original typescript compiler
@@ -18,7 +15,6 @@ const config = [
       file: path.resolve(pkg.main)
     },
     plugins: [
-      resolve({ extensions }),
       typescript()
     ]
   },
@@ -43,7 +39,6 @@ const config = [
       file: path.resolve(pkg.main.replace(/(.\w+)$/, '.min$1'))
     },
     plugins: [
-      resolve({ extensions }),
       typescript(),
       babel({
         exclude: 'node_modules/**',
