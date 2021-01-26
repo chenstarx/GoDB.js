@@ -155,7 +155,7 @@ user.add(data) // OK
   .then(luke => user.add(luke)) // ERROR, since the name should be unique
 ```
 
-When schema is defined, you can use the indexes as search criteria in the
+When schema is defined, you can use the defined indexes as search criteria in the
 `Table.get()` method.
 
 It is faster than `Table.find()`, especially when the table has huge amounts of data
@@ -166,3 +166,16 @@ If `schema` is defined, `Godb` will check the data structure in operations like 
 
 In short, `Godb` will behave like MongoDB when the
 `schema` was not provided, but like MySQL if `schema` was defined.
+
+You can also define the schema when creating table:
+
+```javascript
+const testDB = new Godb('testDB');
+const user = testDB.table('user', {
+    name: {
+        type: String,
+        unique: true
+    },
+    age: Number
+});
+```
