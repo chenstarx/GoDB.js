@@ -1,4 +1,6 @@
-examples/
+demos/
 test/
 .babelrc
+.gitignore
 rollup.config.js
+yarn.lock
