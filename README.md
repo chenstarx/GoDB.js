@@ -141,7 +141,7 @@ const schema = {
     }
 }
 
-const testDB = new Godb('testDB', schema);
+const testDB = new Godb('testDB', { schema }); // { schema: schema }
 const user = testDB.table('user');
 
 const luke = {
