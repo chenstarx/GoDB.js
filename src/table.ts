@@ -80,7 +80,7 @@ export default class GodbTable {
 
   // TODO: check data's schema
   // resolve: id of added item
-  add(data: GodbInputData): Promise<number> {
+  add(data: GodbInputData): Promise<GodbData> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         try {
@@ -93,7 +93,10 @@ export default class GodbTable {
           // TODO: according to MDN, `onsuccess` does not exactly mean a successful adding
           request.onsuccess = (e) => {
             const { result } = e.target as IDBRequest;
-            resolve(result);
+            resolve({
+              ...data,
+              id: result
+            });
           };
 
           request.onerror = (e) => {
@@ -110,14 +113,14 @@ export default class GodbTable {
 
   // TODO FIX: the order might be unexpected when
   //  `addMany` and `add` were executing at the same time
-  addMany(data: Array<GodbInputData>): Promise<Array<number>> {
+  addMany(data: Array<GodbInputData>): Promise<Array<GodbData>> {
     return new Promise(async (resolve, reject) => {
       if (Array.isArray(data)) {
-        const id = [];
+        const arr = [];
         for (let item of data) {
-          id.push(await this.add(item));
+          arr.push(await this.add(item));
         }
-        resolve(id);
+        resolve(arr);
       } else {
         reject(new Error('Table.addMany() failed: input data should be an array'));
       }
@@ -128,7 +131,7 @@ export default class GodbTable {
   // if data is not in table, `put` will add the data, otherwise update
   // TODO: check schema's unique key, which decides whether update or add data
   // resolve: id of updated item
-  put(data: GodbData): Promise<number> {
+  put(data: GodbData): Promise<GodbData> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         if (!(data && typeof data === 'object'))
@@ -146,7 +149,10 @@ export default class GodbTable {
           // TODO: according to MDN, `onsuccess` does not exactly mean a successful adding
           request.onsuccess = (e) => {
             const { result } = e.target as IDBRequest;
-            resolve(result);
+            resolve({
+              ...data,
+              id: result
+            });
           };
 
           request.onerror = (e) => {
