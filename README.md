@@ -1,5 +1,5 @@
 English | [中文文档](docs/README-zh.md)
-# Godb.js
+# GoDB.js
 
 IndexedDB with Intuitive API, CRUD with one line of code.
 
@@ -36,9 +36,9 @@ npm install godb
 CRUD operations with one line of code:
 
 ``` javascript
-import Godb from 'godb';
+import GoDB from 'godb';
 
-const testDB = new Godb('testDB');
+const testDB = new GoDB('testDB');
 const user = testDB.table('user');
 
 const data = {
@@ -126,7 +126,7 @@ Therefore, `Table.get()` has a better performance, especially when the table is 
 You can use schema to define the database structure (optional)
 
 ``` javascript
-import Godb from 'godb';
+import GoDB from 'godb';
 
 // Define schema
 const schema = {
@@ -142,7 +142,7 @@ const schema = {
     }
 }
 
-const testDB = new Godb('testDB', { schema }); // { schema: schema }
+const testDB = new GoDB('testDB', { schema }); // { schema: schema }
 const user = testDB.table('user');
 
 const data = {
@@ -162,15 +162,15 @@ It is faster than `Table.find()`, especially when the table has huge amounts of 
 
 The design of schema is inspired by `Mongoose`
 
-If `schema` is defined, `Godb` will check the data structure in operations like `Table.add()`: if the data structure does not fit in schema, report an error.
+If `schema` is defined, `GoDB` will check the data structure in operations like `Table.add()`: if the data structure does not fit in schema, report an error.
 
-In short, `Godb` will behave like MongoDB when the
+In short, `GoDB` will behave like MongoDB when the
 `schema` was not provided, but like MySQL if `schema` was defined.
 
 You can also define the schema when creating table:
 
 ```javascript
-const testDB = new Godb('testDB');
+const testDB = new GoDB('testDB');
 const user = testDB.table('user', {
     name: {
         type: String,

@@ -1,22 +1,22 @@
 import {
-  Godb,
-  GodbData,
-  GodbInputData,
-  GodbTableSchema,
-  GodbTableSearch,
+  GoDB,
+  GoDBData,
+  GoDBInputData,
+  GoDBTableSchema,
+  GoDBTableSearch,
   TableFindFunction
 } from './global/types';
 
 // TODO: GLOBAL ERROR HANDLER
 // TODO: optimizing for duplicated codes, make a global promise to handle error
 // TODO: make sure that schema is sync with objectStore
-export default class GodbTable {
+export default class GoDBTable {
 
   name: string;
-  godb: Godb;
-  schema: GodbTableSchema;
+  godb: GoDB;
+  schema: GoDBTableSchema;
 
-  constructor(godb: Godb, name: string, schema: GodbTableSchema) {
+  constructor(godb: GoDB, name: string, schema: GoDBTableSchema) {
 
     this.godb = godb;
     this.name = name;
@@ -29,7 +29,7 @@ export default class GodbTable {
   }
 
   // TODO: check if criteria's key fits schema
-  get(criteria: GodbTableSearch | number): Promise<GodbData> {
+  get(criteria: GoDBTableSearch | number): Promise<GoDBData> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         try {
@@ -80,7 +80,7 @@ export default class GodbTable {
 
   // TODO: check data's schema
   // resolve: id of added item
-  add(data: GodbInputData): Promise<GodbData> {
+  add(data: GoDBInputData): Promise<GoDBData> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         try {
@@ -113,7 +113,7 @@ export default class GodbTable {
 
   // TODO FIX: the order might be unexpected when
   //  `addMany` and `add` were executing at the same time
-  addMany(data: Array<GodbInputData>): Promise<Array<GodbData>> {
+  addMany(data: Array<GoDBInputData>): Promise<Array<GoDBData>> {
     return new Promise(async (resolve, reject) => {
       if (Array.isArray(data)) {
         const arr = [];
@@ -131,7 +131,7 @@ export default class GodbTable {
   // if data is not in table, `put` will add the data, otherwise update
   // TODO: check schema's unique key, which decides whether update or add data
   // resolve: id of updated item
-  put(data: GodbData): Promise<GodbData> {
+  put(data: GoDBData): Promise<GoDBData> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         if (!(data && typeof data === 'object'))
@@ -171,7 +171,7 @@ export default class GodbTable {
 
   }
 
-  delete(criteria: GodbTableSearch): Promise<void> {
+  delete(criteria: GoDBTableSearch): Promise<void> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         try {
@@ -199,7 +199,7 @@ export default class GodbTable {
   }
 
   // find by a function
-  find(fn: TableFindFunction): Promise<GodbData> {
+  find(fn: TableFindFunction): Promise<GoDBData> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         try {
@@ -225,7 +225,7 @@ export default class GodbTable {
   }
 
   // return all results by a find function
-  findAll(fn: TableFindFunction): Promise<Array<GodbData>> {
+  findAll(fn: TableFindFunction): Promise<Array<GoDBData>> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         try {

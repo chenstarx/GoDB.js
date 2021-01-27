@@ -1,30 +1,30 @@
-import GodbClass from '../godb';
-import GodbTableClass from '../table';
+import GoDBClass from '../godb';
+import GoDBTableClass from '../table';
 
 type PrimitiveType = number | string | boolean | null;
-type GodbDataType = PrimitiveType | object;
+type GoDBDataType = PrimitiveType | object;
 
-export type Godb = GodbClass;
+export type GoDB = GoDBClass;
 
-export type GodbTable = GodbTableClass;
+export type GoDBTable = GoDBTableClass;
 
-export interface GodbData {
+export interface GoDBData {
   id: number,
-  [key: string]: GodbDataType | Array<GodbDataType>
+  [key: string]: GoDBDataType | Array<GoDBDataType>
 }
 
-export interface GodbInputData {
-  [key: string]: GodbDataType | Array<GodbDataType>
+export interface GoDBInputData {
+  [key: string]: GoDBDataType | Array<GoDBDataType>
 }
 
 // some problems here
-export interface GodbTableSearch {
+export interface GoDBTableSearch {
   [key: string]: number | string
 }
 
 export type GetDBCallback = (idb: IDBDatabase) => void;
 
-export type TableFindFunction = (item?: GodbData) => boolean;
+export type TableFindFunction = (item?: GoDBData) => boolean;
 
 export type TableIndexTypes =
   NumberConstructor
@@ -41,25 +41,25 @@ export interface TableIndex {
   ref?: string
 }
 
-export interface GodbConfig {
+export interface GoDBConfig {
   version?: number
-  schema?: GodbSchema
+  schema?: GoDBSchema
 }
 
-export interface GodbTableSchema {
+export interface GoDBTableSchema {
   [key: string]: TableIndex | TableIndexTypes
 }
 
-export interface GodbSchema {
-  [table: string]: GodbTableSchema
+export interface GoDBSchema {
+  [table: string]: GoDBTableSchema
 }
 
-export interface GodbTableDict {
-  [table: string]: GodbTableClass
+export interface GoDBTableDict {
+  [table: string]: GoDBTableClass
 }
 
 // Test for types checking:
-// const schema: GodbSchema = {
+// const schema: GoDBSchema = {
 //   user: {
 //     name: {
 //       type: String,

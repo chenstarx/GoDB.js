@@ -1,14 +1,14 @@
-import GodbTable from './table';
+import GoDBTable from './table';
 import { indexedDB } from './global/window';
-import { GodbConfig, GodbSchema, GodbTableSchema, GodbTableDict, GetDBCallback } from './global/types';
+import { GoDBConfig, GoDBSchema, GoDBTableSchema, GoDBTableDict, GetDBCallback } from './global/types';
 
-export default class Godb {
+export default class GoDB {
 
   name: string;
   version: number;
 
   idb: IDBDatabase;
-  tables: GodbTableDict;
+  tables: GoDBTableDict;
 
   private _closed: boolean;
   private _connection: IDBOpenDBRequest;
@@ -19,7 +19,7 @@ export default class Godb {
   onOpened: Function;
   onClosed: Function;
 
-  constructor(name: string, config?: GodbConfig) {
+  constructor(name: string, config?: GoDBConfig) {
 
     // init params
     this.tables = {};
@@ -38,7 +38,7 @@ export default class Godb {
 
       // init tables
       for (let table in schema)
-        this.tables[table] = new GodbTable(this, table, schema[table]);
+        this.tables[table] = new GoDBTable(this, table, schema[table]);
 
     }
 
@@ -46,19 +46,19 @@ export default class Godb {
     this.getDB();
   }
 
-  table(table: string, tableSchema?: GodbTableSchema): GodbTable {
+  table(table: string, tableSchema?: GoDBTableSchema): GoDBTable {
     if (!this.tables[table]) {
       if (this.idb && tableSchema && typeof tableSchema === 'object') {
         // TODO: create a new objectStore when database is already opened
       }
-      this.tables[table] = new GodbTable(this, table, tableSchema);
+      this.tables[table] = new GoDBTable(this, table, tableSchema);
     }
     return this.tables[table];
   }
 
   // init the database with schema
   // TODO: when db is not empty, clear the db, then change db version to 1
-  init(schema: GodbSchema): void {
+  init(schema: GoDBSchema): void {
     if (!schema) return console.warn('Init failed: schema is not provided');
     if (!this.idb) return console.warn('Init failed: database is not opened yet');
   }
@@ -125,7 +125,7 @@ export default class Godb {
   }
 
   // Require IDBTransaction `versionchange`
-  createTable(table: string, schema: GodbTableSchema): void {
+  createTable(table: string, schema: GoDBTableSchema): void {
     const idb = this.idb;
     if (!idb) return console.error(`Create table '${table}' failed: database is not opened`);
     if (!idb.objectStoreNames.contains(table)) {
@@ -164,7 +164,7 @@ export default class Godb {
    *
    * State `connecting`: connection opened, but db is not opened yet (`this.idb` is undefined)
    * Operation: push the table operations to a queue, executing them when db is opened
-   * Where: Table operations that are in the same macrotask as `new Godb()`
+   * Where: Table operations that are in the same macrotask as `new GoDB()`
    *
    * State `opened`: The database is opened
    * Operation: Invoking the callback synchronously with `this.idb`

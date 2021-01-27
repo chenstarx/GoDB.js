@@ -10,16 +10,16 @@
 
 最近，我终于有了空闲时间，于是捡起了当年的想法，开始尝试用 `TypeScript` 把 `IndexedDB` 封装一遍，把坑一个个填上，做成一个开发者友好的库，并开源出来，上传至 npm
 
-拍脑袋后，我决定把这个项目命名为 `Godb.js`
+拍脑袋后，我决定把这个项目命名为 `GoDB.js`
 
 
-# Godb.js
+# GoDB.js
 
-`Godb.js` 的出现，**让你即使你不了解浏览器数据库 IndexedDB，也能把它用的行云流水，从而把关注点放到业务上面去**
+`GoDB.js` 的出现，**让你即使你不了解浏览器数据库 IndexedDB，也能把它用的行云流水，从而把关注点放到业务上面去**
 
 
 
-毕竟要用好 IndexedDB，你需要翻无数遍 MDN，而 `Godb` 替你吃透了 MDN，从而让你把 IndexedDB 用的更好的同时，操作还更简单了
+毕竟要用好 IndexedDB，你需要翻无数遍 MDN，而 `GoDB` 替你吃透了 MDN，从而让你把 IndexedDB 用的更好的同时，操作还更简单了
 
 
 
@@ -27,7 +27,7 @@
 
 
 项目GitHub：
-https://github.com/chenstarx/Godb.js
+https://github.com/chenstarx/GoDB.js
 
 如果觉得不错的话就点个 Star 吧~
 
@@ -54,9 +54,9 @@ npm install godb
 操作非常简单，**增、删、改、查各只需要一行代码：**
 
 ```javascript
-import Godb from 'godb';
+import GoDB from 'godb';
 
-const testDB = new Godb('testDB');
+const testDB = new GoDB('testDB');
 const user = testDB.table('user');
 
 const data = {
@@ -167,10 +167,10 @@ user.addMany(data)
 
 如果你希望数据库的结构更严格一点，也可以添加 `schema`
 
-`Godb` 会根据 `schema` 建立 `IndexedDB` 数据库索引，给字段添加特性
+`GoDB` 会根据 `schema` 建立 `IndexedDB` 数据库索引，给字段添加特性
 
 ```javascript
-import Godb from 'godb';
+import GoDB from 'godb';
 
 // 定义数据库结构
 const schema = {
@@ -185,7 +185,7 @@ const schema = {
     }
 }
 
-const testDB = new Godb('testDB', { schema }); // 等价于 { schema: schema }
+const testDB = new GoDB('testDB', { schema }); // 等价于 { schema: schema }
 const user = testDB.table('user');
 
 const data = {
@@ -207,7 +207,7 @@ user.add(data) // 没问题
 当然，你也可以在 `table` 那定义 `schema`：
 
 ```javascript
-const testDB = new Godb('testDB');
+const testDB = new GoDB('testDB');
 const user = testDB.table('user', {
     name: {
         type: String,
@@ -217,9 +217,9 @@ const user = testDB.table('user', {
 });
 ```
 
-但这种方式的缺点是，如果定义 `table` 发生在连接数据库之后，`Godb` 会先发起一个 `IDBVersionChange` 的事件，导致 `IndexedDB` 数据库版本升级，此时如果有别的 CRUD 操作正在进行，可能会导致建立 `table` 失败
+但这种方式的缺点是，如果定义 `table` 发生在连接数据库之后，`GoDB` 会先发起一个 `IDBVersionChange` 的事件，导致 `IndexedDB` 数据库版本升级，此时如果有别的 CRUD 操作正在进行，可能会导致建立 `table` 失败
 
-要避免这个问题倒是很简单，把所有获取 `table` 的操作紧接在 `new Godb()` 之后（保证这两操作是同步而非异步执行的）就可以，这样可以确保所有 `table` 都在连接完成之前获取到（JS 的事件循环特性）
+要避免这个问题倒是很简单，把所有获取 `table` 的操作紧接在 `new GoDB()` 之后（保证这两操作是同步而非异步执行的）就可以，这样可以确保所有 `table` 都在连接完成之前获取到（JS 的事件循环特性）
 
 
 
@@ -239,7 +239,7 @@ const user = testDB.table('user', {
 
 
 
-不定义 Schema 时，`Godb` 使用起来就像 MongoDB 一样，可以灵活添加数据；区别是 Mongodb 中，每条数据的唯一标识符是 `_id`，而 `Godb` 是 `id`
+不定义 Schema 时，`GoDB` 使用起来就像 MongoDB 一样，可以灵活添加数据；区别是 Mongodb 中，每条数据的唯一标识符是 `_id`，而 `GoDB` 是 `id`
 
 
 
@@ -247,7 +247,7 @@ const user = testDB.table('user', {
 
 
 
-定义 Schema 后，`Godb` 使用起来就像 MySQL 一样，如果添加 Schema 没有的字段，或者是字段类型不符合定义，会报错（在写文档的时候还没有实现这个功能，即使 Schema 不符合也能加，下个版本会安排上）
+定义 Schema 后，`GoDB` 使用起来就像 MySQL 一样，如果添加 Schema 没有的字段，或者是字段类型不符合定义，会报错（在写文档的时候还没有实现这个功能，即使 Schema 不符合也能加，下个版本会安排上）
 
 
 
@@ -257,13 +257,13 @@ const user = testDB.table('user', {
 
 # 使用 await
 
-由于 `Godb` 的 API 都是 `Promise` 的，因此在很多场景下可以使用 `await`，使代码更简洁，同时拓宽使用场景（`await` 可以很方便用在循环内，而 `Promise.then` 很难）
+由于 `GoDB` 的 API 都是 `Promise` 的，因此在很多场景下可以使用 `await`，使代码更简洁，同时拓宽使用场景（`await` 可以很方便用在循环内，而 `Promise.then` 很难）
 
 
 ```javascript
-import Godb from 'godb';
+import GoDB from 'godb';
 
-const db = new Godb('testDB', { schema });
+const db = new GoDB('testDB', { schema });
 const user = db.table('user', {
     name: {
       type: String,
@@ -324,7 +324,7 @@ async function crud() {
 
 
 
-这里讨论的不是「API 如何命名」这样的细节，而是「API 的使用方式」，因为这会直接影响到用户使用 `Godb` 时的业务代码编写方式
+这里讨论的不是「API 如何命名」这样的细节，而是「API 的使用方式」，因为这会直接影响到用户使用 `GoDB` 时的业务代码编写方式
 
 
 
@@ -337,10 +337,10 @@ async function crud() {
 GitHub 上大多数开源的 IndexedDB 封装库都是这么做的
 
 ```javascript
-import Godb from 'godb';
+import GoDB from 'godb';
 
 // 连接数据库是异步的
-Godb.open('testDB')
+GoDB.open('testDB')
     .then(testDB => testDB.table('user')) // 连接表也需要异步
     .then(user => {
         user.add({
@@ -372,18 +372,18 @@ Godb.open('testDB')
 以 Vue 为例，如果你在全局环境（比如 Vuex）定义了一个连接：
 
 ```javascript
-import Godb from 'godb';
+import GoDB from 'godb';
 
 new Vuex.Store({
   state: {
-    godb: await Godb.open('testDB') // 不加 await 返回的就是 Promise 了
+    godb: await GoDB.open('testDB') // 不加 await 返回的就是 Promise 了
   }
 });
 ```
 
 
 
-这样，在 Vue 的任何一个组件中，我们都能访问到 `Godb` 实例
+这样，在 Vue 的任何一个组件中，我们都能访问到 `GoDB` 实例
 
 问题来了，在你的组件中，如果你想在组件初始化时，比如 `created` 和 `mounted` 这样的钩子函数中（React 中就是 `ComponentDidMount`），去访问数据库：
 
@@ -409,11 +409,11 @@ new Vue({
 解决办法是，在每一个需要操作数据库的地方，都定义一个连接：
 
 ```javascript
-import Godb from 'godb';
+import GoDB from 'godb';
 
 new Vue({
     mounted() {
-        Godb.open('testDB')
+        GoDB.open('testDB')
           .then(testDB => testDB.table('user'))
           .then(user => {
               user.add({
@@ -440,7 +440,7 @@ new Vue({
 我最终采用了这个方案，对开发者而言，甚至感觉不到「连接数据库」和「连接表」这两个操作是异步的
 
 ```javascript
-const testDB = new Godb('testDB');
+const testDB = new GoDB('testDB');
 const user = testDB.table('user');
 
 user.add({
@@ -473,7 +473,7 @@ user.add({
 
 具体而言，就是
 
-- 在 `Godb` 的 class 中定义一个 `getDB(callback)`，用来获取 IndexedDB 连接实例
+- 在 `GoDB` 的 class 中定义一个 `getDB(callback)`，用来获取 IndexedDB 连接实例
 - 增删改查中，都调用 `getDB`，在 `callback` 获取到 IndexedDB 的连接实例后再进行操作
 - `getDB` 中使用一个队列，如果数据库还没连接上，就把 `callback` 放进队列，在连接上后，执行这个队列中的函数
 - 连接完成时，直接把 IndexedDB 连接实例传进 `callback` 执行即可
@@ -488,7 +488,7 @@ user.add({
 
 
 
-第一种状态只在第一次执行 `getDB` 时触发，因为一旦尝试建立连接就进入下一个状态了；第一次执行被我放到了 `Godb` 类的构造函数中
+第一种状态只在第一次执行 `getDB` 时触发，因为一旦尝试建立连接就进入下一个状态了；第一次执行被我放到了 `GoDB` 类的构造函数中
 
 第三种状态时，也就是已经连上数据库后，直接把连接实例传进 `callback` 执行即可
 
@@ -497,7 +497,7 @@ user.add({
 关键是处理第二种状态，此时正在连接数据库，但还未连上，无法进行增删改查：
 
 ```javascript
-const testDB = new Godb('testDB');
+const testDB = new GoDB('testDB');
 const user = testDB.table('user');
 
 user.add({ name: 'luke' }); // 此时数据库正在连接，还未连上
@@ -516,7 +516,7 @@ testDB.onOpened = () => { // 数据库连接成功的回调
 
 答案是使用队列 Queue，把数据库还未连上时的 `add` 操作加进队列，在连接成功时，按先进先出的顺序执行
 
-这样，用户就不需要关心，操作时数据库是否已经连上了（只需要关注异步回调即可），`Godb` 帮你在幕后做好了这一切
+这样，用户就不需要关心，操作时数据库是否已经连上了（只需要关注异步回调即可），`GoDB` 帮你在幕后做好了这一切
 
 
 
@@ -529,11 +529,11 @@ testDB.onOpened = () => { // 数据库连接成功的回调
 还是以 Vue 为例，如果我们在 Vuex（全局变量）中添加连接实例：
 
 ```javascript
-import Godb from 'godb';
+import GoDB from 'godb';
 
 new Vuex.Store({
     state: {
-        godb: new Godb('testDB')
+        godb: new GoDB('testDB')
     }
 });
 ```
@@ -570,7 +570,7 @@ new Vue({
 
 
 
-缺点：对 `Godb.js` 的开发更麻烦，不是简单把 IndexedDB 封装一层 Promise 就行
+缺点：对 `GoDB.js` 的开发更麻烦，不是简单把 IndexedDB 封装一层 Promise 就行
 
 
 
@@ -600,6 +600,6 @@ new Vue({
 
 如果觉得这个项目有意思，欢迎给文章点赞，欢迎来 GitHub 点个 star~
 
-https://github.com/chenstarx/Godb.js
+https://github.com/chenstarx/GoDB.js
 
 

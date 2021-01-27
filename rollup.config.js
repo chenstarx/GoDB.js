@@ -10,7 +10,7 @@ const config = [
   {
     input: './src/godb.ts',
     output: {
-      name: 'Godb',
+      name: 'GoDB',
       format: 'es',
       file: path.resolve(pkg.main)
     },
@@ -22,7 +22,7 @@ const config = [
   {
     input: './src/godb.ts',
     output: {
-      name: 'Godb',
+      name: 'GoDB',
       format: 'es',
       file: path.resolve(pkg.typings)
     },
@@ -34,7 +34,7 @@ const config = [
   {
     input: './src/godb.ts',
     output: {
-      name: 'Godb',
+      name: 'GoDB',
       format: 'umd',
       file: path.resolve(pkg.main.replace(/(.\w+)$/, '.min$1'))
     },

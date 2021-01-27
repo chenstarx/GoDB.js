@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chenstarx/Godb.js.git"
+    "url": "git+https://github.com/chenstarx/GoDB.js.git"
   },
   "keywords": [
     "indexeddb",
@@ -20,9 +20,9 @@
   "author": "chenstarx",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/chenstarx/Godb.js/issues"
+    "url": "https://github.com/chenstarx/GoDB.js/issues"
   },
-  "homepage": "https://github.com/chenstarx/Godb.js#readme",
+  "homepage": "https://github.com/chenstarx/GoDB.js#readme",
   "devDependencies": {
     "@babel/core": "^7.12.10",
     "@babel/preset-env": "^7.12.11",

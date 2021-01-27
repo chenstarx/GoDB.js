@@ -1,7 +1,7 @@
 function getDBTest(dbName) {
   if (!dbName) return alert('database name required');
 
-  const testDB = new Godb(dbName);
+  const testDB = new GoDB(dbName);
 
   testDB.getDB((db) => {
     console.log('Init getDB', db);
