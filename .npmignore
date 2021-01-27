@@ -1,5 +1,6 @@
 demos/
 test/
+.vscode
 .babelrc
 .gitignore
 rollup.config.js
