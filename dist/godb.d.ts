@@ -1,18 +1,18 @@
 declare type PrimitiveType = number | string | boolean | null;
-declare type GodbDataType = PrimitiveType | object;
-declare type Godb = Godb$1;
-interface GodbData {
+declare type GoDBDataType = PrimitiveType | object;
+declare type GoDB = GoDB$1;
+interface GoDBData {
     id: number;
-    [key: string]: GodbDataType | Array<GodbDataType>;
+    [key: string]: GoDBDataType | Array<GoDBDataType>;
 }
-interface GodbInputData {
-    [key: string]: GodbDataType | Array<GodbDataType>;
+interface GoDBInputData {
+    [key: string]: GoDBDataType | Array<GoDBDataType>;
 }
-interface GodbTableSearch {
+interface GoDBTableSearch {
     [key: string]: number | string;
 }
 declare type GetDBCallback = (idb: IDBDatabase) => void;
-declare type TableFindFunction = (item?: GodbData) => boolean;
+declare type TableFindFunction = (item?: GoDBData) => boolean;
 declare type TableIndexTypes = NumberConstructor | StringConstructor | BooleanConstructor | DateConstructor | ObjectConstructor | ArrayConstructor;
 interface TableIndex {
     type: TableIndexTypes;
@@ -20,55 +20,55 @@ interface TableIndex {
     default?: any;
     ref?: string;
 }
-interface GodbConfig {
+interface GoDBConfig {
     version?: number;
-    schema?: GodbSchema;
+    schema?: GoDBSchema;
 }
-interface GodbTableSchema {
+interface GoDBTableSchema {
     [key: string]: TableIndex | TableIndexTypes;
 }
-interface GodbSchema {
-    [table: string]: GodbTableSchema;
+interface GoDBSchema {
+    [table: string]: GoDBTableSchema;
 }
-interface GodbTableDict {
-    [table: string]: GodbTable;
+interface GoDBTableDict {
+    [table: string]: GoDBTable;
 }
 
-declare class GodbTable {
+declare class GoDBTable {
     name: string;
-    godb: Godb;
-    schema: GodbTableSchema;
-    constructor(godb: Godb, name: string, schema: GodbTableSchema);
-    get(criteria: GodbTableSearch | number): Promise<GodbData>;
-    add(data: GodbInputData): Promise<GodbData>;
-    addMany(data: Array<GodbInputData>): Promise<Array<GodbData>>;
-    put(data: GodbData): Promise<GodbData>;
+    godb: GoDB;
+    schema: GoDBTableSchema;
+    constructor(godb: GoDB, name: string, schema: GoDBTableSchema);
+    get(criteria: GoDBTableSearch | number): Promise<GoDBData>;
+    add(data: GoDBInputData): Promise<GoDBData>;
+    addMany(data: Array<GoDBInputData>): Promise<Array<GoDBData>>;
+    put(data: GoDBData): Promise<GoDBData>;
     update(): void;
-    delete(criteria: GodbTableSearch): Promise<void>;
-    find(fn: TableFindFunction): Promise<GodbData>;
-    findAll(fn: TableFindFunction): Promise<Array<GodbData>>;
+    delete(criteria: GoDBTableSearch): Promise<void>;
+    find(fn: TableFindFunction): Promise<GoDBData>;
+    findAll(fn: TableFindFunction): Promise<Array<GoDBData>>;
     where(): void;
     consoleTable(limit?: number): Promise<void>;
 }
 
-declare class Godb$1 {
+declare class GoDB$1 {
     name: string;
     version: number;
     idb: IDBDatabase;
-    tables: GodbTableDict;
+    tables: GoDBTableDict;
     private _closed;
     private _connection;
     private _callbackQueue;
     onOpened: Function;
     onClosed: Function;
-    constructor(name: string, config?: GodbConfig);
-    table(table: string, tableSchema?: GodbTableSchema): GodbTable;
-    init(schema: GodbSchema): void;
+    constructor(name: string, config?: GoDBConfig);
+    table(table: string, tableSchema?: GoDBTableSchema): GoDBTable;
+    init(schema: GoDBSchema): void;
     close(): void;
     drop(): Promise<Event>;
     backup(): void;
     getDBState(): string;
-    createTable(table: string, schema: GodbTableSchema): void;
+    createTable(table: string, schema: GoDBTableSchema): void;
     /**
      * It is necessary to get `IDBDatabase` instance (`this.idb`) before
      *  table operations like table.add(), table.get(), etc.
@@ -86,7 +86,7 @@ declare class Godb$1 {
      *
      * State `connecting`: connection opened, but db is not opened yet (`this.idb` is undefined)
      * Operation: push the table operations to a queue, executing them when db is opened
-     * Where: Table operations that are in the same macrotask as `new Godb()`
+     * Where: Table operations that are in the same macrotask as `new GoDB()`
      *
      * State `opened`: The database is opened
      * Operation: Invoking the callback synchronously with `this.idb`
@@ -100,4 +100,4 @@ declare class Godb$1 {
     getDB(callback?: GetDBCallback): void;
 }
 
-export default Godb$1;
+export default GoDB$1;

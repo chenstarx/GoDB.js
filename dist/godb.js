@@ -65,14 +65,14 @@ function __generator(thisArg, body) {
 // TODO: GLOBAL ERROR HANDLER
 // TODO: optimizing for duplicated codes, make a global promise to handle error
 // TODO: make sure that schema is sync with objectStore
-var GodbTable = /** @class */ (function () {
-    function GodbTable(godb, name, schema) {
+var GoDBTable = /** @class */ (function () {
+    function GoDBTable(godb, name, schema) {
         this.godb = godb;
         this.name = name;
         this.schema = schema ? __assign({ id: Number }, schema) : {};
     }
     // TODO: check if criteria's key fits schema
-    GodbTable.prototype.get = function (criteria) {
+    GoDBTable.prototype.get = function (criteria) {
         var _this = this;
         return new Promise(function (resolve, reject) {
             _this.godb.getDB(function (idb) {
@@ -116,7 +116,7 @@ var GodbTable = /** @class */ (function () {
     };
     // TODO: check data's schema
     // resolve: id of added item
-    GodbTable.prototype.add = function (data) {
+    GoDBTable.prototype.add = function (data) {
         var _this = this;
         return new Promise(function (resolve, reject) {
             _this.godb.getDB(function (idb) {
@@ -143,7 +143,7 @@ var GodbTable = /** @class */ (function () {
     };
     // TODO FIX: the order might be unexpected when
     //  `addMany` and `add` were executing at the same time
-    GodbTable.prototype.addMany = function (data) {
+    GoDBTable.prototype.addMany = function (data) {
         var _this = this;
         return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
             var arr, _i, data_1, item, _a, _b;
@@ -180,7 +180,7 @@ var GodbTable = /** @class */ (function () {
     // if data is not in table, `put` will add the data, otherwise update
     // TODO: check schema's unique key, which decides whether update or add data
     // resolve: id of updated item
-    GodbTable.prototype.put = function (data) {
+    GoDBTable.prototype.put = function (data) {
         var _this = this;
         return new Promise(function (resolve, reject) {
             _this.godb.getDB(function (idb) {
@@ -211,9 +211,9 @@ var GodbTable = /** @class */ (function () {
         });
     };
     // update only, be ware of the difference to `put`
-    GodbTable.prototype.update = function () {
+    GoDBTable.prototype.update = function () {
     };
-    GodbTable.prototype["delete"] = function (criteria) {
+    GoDBTable.prototype["delete"] = function (criteria) {
         var _this = this;
         return new Promise(function (resolve, reject) {
             _this.godb.getDB(function (idb) {
@@ -239,7 +239,7 @@ var GodbTable = /** @class */ (function () {
         });
     };
     // find by a function
-    GodbTable.prototype.find = function (fn) {
+    GoDBTable.prototype.find = function (fn) {
         var _this = this;
         return new Promise(function (resolve, reject) {
             _this.godb.getDB(function (idb) {
@@ -266,7 +266,7 @@ var GodbTable = /** @class */ (function () {
         });
     };
     // return all results by a find function
-    GodbTable.prototype.findAll = function (fn) {
+    GoDBTable.prototype.findAll = function (fn) {
         var _this = this;
         return new Promise(function (resolve, reject) {
             _this.godb.getDB(function (idb) {
@@ -294,10 +294,10 @@ var GodbTable = /** @class */ (function () {
         });
     };
     // TODO: people.where('age').below(22).toArray()
-    GodbTable.prototype.where = function () {
+    GoDBTable.prototype.where = function () {
     };
     // showing 1000 items maximum in Chrome and Firefox
-    GodbTable.prototype.consoleTable = function (limit) {
+    GoDBTable.prototype.consoleTable = function (limit) {
         var _this = this;
         if (limit === void 0) { limit = 1000; }
         return new Promise(function (resolve, reject) {
@@ -333,7 +333,7 @@ var GodbTable = /** @class */ (function () {
             });
         });
     };
-    return GodbTable;
+    return GoDBTable;
 }());
 
 var global = window;
@@ -342,8 +342,8 @@ var indexedDB = global.indexedDB ||
     global.mozIndexedDB ||
     global.msIndexedDB;
 
-var Godb = /** @class */ (function () {
-    function Godb(name, config) {
+var GoDB = /** @class */ (function () {
+    function GoDB(name, config) {
         // init params
         this.tables = {};
         this._callbackQueue = [];
@@ -356,27 +356,27 @@ var Godb = /** @class */ (function () {
                 this.version = version;
             // init tables
             for (var table in schema)
-                this.tables[table] = new GodbTable(this, table, schema[table]);
+                this.tables[table] = new GoDBTable(this, table, schema[table]);
         }
         // open connection to the IndexedDB
         this.getDB();
     }
-    Godb.prototype.table = function (table, tableSchema) {
+    GoDB.prototype.table = function (table, tableSchema) {
         if (!this.tables[table]) {
             if (this.idb && tableSchema && typeof tableSchema === 'object') ;
-            this.tables[table] = new GodbTable(this, table, tableSchema);
+            this.tables[table] = new GoDBTable(this, table, tableSchema);
         }
         return this.tables[table];
     };
     // init the database with schema
     // TODO: when db is not empty, clear the db, then change db version to 1
-    Godb.prototype.init = function (schema) {
+    GoDB.prototype.init = function (schema) {
         if (!schema)
             return console.warn('Init failed: schema is not provided');
         if (!this.idb)
             return console.warn('Init failed: database is not opened yet');
     };
-    Godb.prototype.close = function () {
+    GoDB.prototype.close = function () {
         if (this.idb) {
             this.idb.close();
             this.idb = null;
@@ -390,7 +390,7 @@ var Godb = /** @class */ (function () {
     };
     // drop a database by its name
     // TODO: make this no-static, close the database before dropping
-    Godb.prototype.drop = function () {
+    GoDB.prototype.drop = function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
             _this.close();
@@ -416,9 +416,9 @@ var Godb = /** @class */ (function () {
         });
     };
     // TODO: backup for dangerous operations, like drop() and version change events
-    Godb.prototype.backup = function () {
+    GoDB.prototype.backup = function () {
     };
-    Godb.prototype.getDBState = function () {
+    GoDB.prototype.getDBState = function () {
         if (this._closed)
             return 'closed';
         if (this.idb)
@@ -428,7 +428,7 @@ var Godb = /** @class */ (function () {
         return 'init';
     };
     // Require IDBTransaction `versionchange`
-    Godb.prototype.createTable = function (table, schema) {
+    GoDB.prototype.createTable = function (table, schema) {
         var idb = this.idb;
         if (!idb)
             return console.error("Create table '" + table + "' failed: database is not opened");
@@ -464,7 +464,7 @@ var Godb = /** @class */ (function () {
      *
      * State `connecting`: connection opened, but db is not opened yet (`this.idb` is undefined)
      * Operation: push the table operations to a queue, executing them when db is opened
-     * Where: Table operations that are in the same macrotask as `new Godb()`
+     * Where: Table operations that are in the same macrotask as `new GoDB()`
      *
      * State `opened`: The database is opened
      * Operation: Invoking the callback synchronously with `this.idb`
@@ -475,7 +475,7 @@ var Godb = /** @class */ (function () {
      * Attention: callback is async in state 1 and 2,
      * but being sync in state 3
      */
-    Godb.prototype.getDB = function (callback) {
+    GoDB.prototype.getDB = function (callback) {
         var _this = this;
         // return function for corresponding state
         return ({
@@ -564,7 +564,7 @@ var Godb = /** @class */ (function () {
             }
         }[this.getDBState()])();
     };
-    return Godb;
+    return GoDB;
 }());
 
-export default Godb;
+export default GoDB;
