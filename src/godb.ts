@@ -172,119 +172,120 @@ export default class GoDB {
    *  mention that the db's opening only takes a few milliseconds,
    *  and normally most of user's table operations will happen after db's opening
    *
-   * Attention: callback is async in state 1 and 2,
-   * but being sync in state 3
+   * State sequence:
+   * init -> connecting -> opened -> closed
+   *
+   * Attention: callback is async-called in state `init` and `connecting`,
+   * but being sync-called in state `opened`
    */
   getDB(callback?: GetDBCallback): void {
-    // return function for corresponding state
-    return ({
-      // unable `getDB` if db was closed
-      closed: () => {
-        console.warn('getDB failed: database is closed');
-      },
 
-      // State `opened`: db is opened, callback is sync in this case
-      opened: () => {
-        if (callback && typeof callback === 'function')
-          callback(this.idb);
-      },
+    // State `opened`: db is opened, calling callback synchronously with IDBDatabase instance
+    if (this.idb) {
+      if (callback && typeof callback === 'function')
+        callback(this.idb);
+      return;
+    }
 
-      // State `connecting`: connection opened, but db not opened yet
-      connecting: () => {
-        if (callback && typeof callback === 'function')
-          this._callbackQueue.push(callback);
-      },
+    // State `closed`: db is closed
+    if (this._closed) {
+      console.warn('getDB failed: database is closed');
+      return;
+    }
 
-      // State `init`: no connection yet
-      init: () => {
-        // ONLY EXECUTED ONCE IN CONSTRUCTOR
-        const database = this.name;
-        const tables = this.tables;
+    // State `connecting`: connection is opened, but db is not opened yet
+    if (this._connection) {
+      if (callback && typeof callback === 'function')
+        this._callbackQueue.push(callback);
+      return;
+    }
 
-        if (this.version)
-          this._connection = indexedDB.open(database, this.version);
-        else
-          this._connection = indexedDB.open(database);
+    // State `init`: opening connection to IndexedDB
+    const database = this.name;
+    const tables = this.tables;
 
-        this._connection.onsuccess = (ev) => {
+    if (this.version)
+      this._connection = indexedDB.open(database, this.version);
+    else
+      this._connection = indexedDB.open(database);
 
-          const { result } = this._connection || ev.target as IDBOpenDBRequest;
+    this._connection.onsuccess = (ev) => {
 
-          // triggered when 'onupgradeneeded' was not called
-          // meaning that the database was already existed in browser
-          if (!this.idb) {
-            this.idb = result;
-            console.log(`Database['${database}'] existed with version (${result.version})`);
-          }
-          console.log(`Local database '${database}' is opened!`);
+      const { result } = this._connection || ev.target as IDBOpenDBRequest;
 
-          // executing operations invoked by user at State 2
-          if (this._callbackQueue?.length) {
-            this._callbackQueue.forEach(fn => fn(this.idb))
-          }
-
-          // call onOpened if it is defined by user
-          if (this.onOpened) {
-            if (typeof this.onOpened === 'function')
-              this.onOpened(this.idb);
-            else
-              console.warn(`'onOpened' should be a function, not ${typeof this.onOpened}`);
-          }
-
-          // The code below is actually not necessary,
-          //  cuz it will only be invoked in the constructor,
-          //  and constructor's `getDB` has no callback
-          // if (callback && typeof callback === 'function')
-          //   callback(result);
-        };
-
-        // called every time when db version changed
-        this._connection.onupgradeneeded = (ev) => {
-          const { oldVersion, newVersion, target } = ev;
-
-          // get database instance
-          this.idb = (target as IDBOpenDBRequest).result;
-
-          console.log(`Database['${database}'] version changed from (${oldVersion}) to (${newVersion})`);
-
-          // create a new database
-          if (oldVersion === 0 && newVersion > 0) {
-            console.log(`Database['${database}'] created with version (${newVersion})`);
-            for (let table in tables) {
-              this.createTable(table, tables[table].schema);
-            }
-          }
-
-          // TODO: database was dropped somewhere while still opening
-          else if (newVersion > 0 && newVersion === 0) {
-            console.warn(`Current opening database '${database}' was dropped`);
-          }
-
-          // TODO: schema changed
-          else if (oldVersion > 0 && newVersion > 0) {
-            console.log(`Database['${database}'] was upgraded`);
-          }
-
-          this.version = newVersion;
-        };
-
-        this._connection.onerror = (ev) => {
-          const { error } = ev.target as IDBOpenDBRequest;
-          const { name, message } = error;
-          throw Error(
-            `Local database '${database}' opening failed!\
-            \n- ${name}: ${message}`
-          );
-        };
-
-        this._connection.onblocked = (ev) => {
-          const { newVersion, oldVersion } = ev as IDBVersionChangeEvent;
-          throw Error(
-            `Database['${database}'] is opening somewhere with version (${oldVersion})\
-            thus new opening request to version (${newVersion}) is failed.`
-          );
-        };
+      // triggered when 'onupgradeneeded' was not called
+      // meaning that the database was already existed in browser
+      if (!this.idb) {
+        this.idb = result;
+        console.log(`Database['${database}'] existed with version (${result.version})`);
       }
-    }[this.getDBState()])();
+      console.log(`Local database '${database}' is opened!`);
+
+      // executing operations invoked by user at State `connecting`
+      if (this._callbackQueue?.length) {
+        this._callbackQueue.forEach(fn => fn(this.idb))
+      }
+
+      // call onOpened if it is defined by user
+      if (this.onOpened) {
+        if (typeof this.onOpened === 'function')
+          this.onOpened(this.idb);
+        else
+          console.warn(`'onOpened' should be a function, not ${typeof this.onOpened}`);
+      }
+
+      // The code below is actually not necessary,
+      //  cuz it will only be invoked in the constructor,
+      //  and constructor's `getDB` has no callback
+      // if (callback && typeof callback === 'function')
+      //   callback(result);
+    };
+
+    // called every time when db version changed
+    this._connection.onupgradeneeded = (ev) => {
+      const { oldVersion, newVersion, target } = ev;
+
+      // get database instance
+      this.idb = (target as IDBOpenDBRequest).result;
+
+      console.log(`Database['${database}'] version changed from (${oldVersion}) to (${newVersion})`);
+
+      // create a new database
+      if (oldVersion === 0 && newVersion > 0) {
+        console.log(`Database['${database}'] created with version (${newVersion})`);
+        for (let table in tables) {
+          this.createTable(table, tables[table].schema);
+        }
+      }
+
+      // TODO: database was dropped somewhere while still opening
+      else if (newVersion > 0 && newVersion === 0) {
+        console.warn(`Current opening database '${database}' was dropped`);
+      }
+
+      // TODO: schema changed
+      else if (oldVersion > 0 && newVersion > 0) {
+        console.log(`Database['${database}'] was upgraded`);
+      }
+
+      this.version = newVersion;
+    };
+
+    this._connection.onerror = (ev) => {
+      const { error } = ev.target as IDBOpenDBRequest;
+      const { name, message } = error;
+      throw Error(
+        `Local database '${database}' opening failed!`
+        + `\n- ${name}: ${message}`
+      );
+    };
+
+    this._connection.onblocked = (ev) => {
+      const { newVersion, oldVersion } = ev as IDBVersionChangeEvent;
+      throw Error(
+        `Database['${database}'] is opening somewhere with version (${oldVersion}), `
+        + `thus new opening request to version (${newVersion}) is failed.`
+      );
+    };
   }
 }
