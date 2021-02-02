@@ -171,7 +171,7 @@ export default class GoDBTable {
 
   }
 
-  delete(criteria: GoDBTableSearch): Promise<void> {
+  delete(criteria: GoDBTableSearch | number): Promise<void> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         try {

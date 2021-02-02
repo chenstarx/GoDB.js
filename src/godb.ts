@@ -223,7 +223,7 @@ export default class GoDB {
 
       // executing operations invoked by user at State `connecting`
       if (this._callbackQueue?.length) {
-        this._callbackQueue.forEach(fn => fn(this.idb))
+        this._callbackQueue.forEach(fn => fn(this.idb));
       }
 
       // call onOpened if it is defined by user
