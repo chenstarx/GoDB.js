@@ -2,6 +2,7 @@ English | [中文文档](docs/README-zh.md)
 # GoDB.js
 
 IndexedDB with Intuitive API, CRUD with one line of code.
+![godb-logo](https://cdn.liqi.tech/godb/godb.png)
 
 
 
@@ -14,10 +15,14 @@ IndexedDB with Intuitive API, CRUD with one line of code.
 
 TODO：
 
-- [ ] `Table.update()`
+- [ ] If database or table is existed, check the schema when init
+- [ ] Table creating after db is connected
+- [ ] Key-Value mode, like localStorage
 - [ ] Global error handler for Exceptions
+- [ ] `Table.update()`
 - [ ] Check `schema` in CRUD operation if `schema` is defined
-- [ ] Make sure `schema` is sync with database structure
+    - [ ] only adding fields that were defined in `schema`
+- [ ] Make sure `schema` is identical with database structure
 
 
 Star this project if you think it is helpful, thanks~
