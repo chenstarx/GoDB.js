@@ -243,8 +243,9 @@ export default class GoDB {
       console.log(`Open Database['${database}'] successfully`);
 
       // executing operations invoked by user at State `connecting`
-      if (this._callbackQueue?.length) {
+      if (this._callbackQueue.length) {
         this._callbackQueue.forEach(fn => fn(this.idb));
+        this._callbackQueue = [];
       }
 
       // call onOpened if it is defined by user
