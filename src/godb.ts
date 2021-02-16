@@ -1,6 +1,12 @@
 import GoDBTable from './table';
 import { indexedDB } from './global/window';
-import { GoDBConfig, GoDBSchema, GoDBTableSchema, GoDBTableDict, GetDBCallback } from './global/types';
+import {
+  GoDBConfig,
+  GoDBSchema,
+  GoDBTableSchema,
+  GoDBTableDict,
+  GetDBCallback
+} from './global/types';
 
 export default class GoDB {
 
@@ -48,10 +54,13 @@ export default class GoDB {
 
   table(table: string, tableSchema?: GoDBTableSchema): GoDBTable {
     if (!this.tables[table]) {
-      if (this.idb && tableSchema && typeof tableSchema === 'object') {
-        // TODO: create a new objectStore when database is already opened
-      }
+      // TODO: create a new objectStore when database is already opened
       this.tables[table] = new GoDBTable(this, table, tableSchema);
+      if (this.idb) {
+        this.idb.close();
+        this.idb = null; // activate callbackQueue in getDB()
+        this._openDB(++this.version);
+      }
     }
     return this.tables[table];
   }
@@ -69,9 +78,9 @@ export default class GoDB {
       this.idb = null;
       this._connection = null;
       this._closed = true;
-      console.log(`Connection to '${this.idb.name}' is closed`);
+      console.log(`A connection to Database['${this.name}'] was closed`);
     } else {
-      console.warn('Unable to close: database is not opened');
+      console.warn(`Unable to close Database['${this.name}']: it is not opened yet`);
     }
   }
 
@@ -87,7 +96,7 @@ export default class GoDB {
       const deleteRequest = indexedDB.deleteDatabase(database);
 
       deleteRequest.onsuccess = (ev) => {
-        console.log(`Local database '${database}' is successfully dropped!`);
+        console.log(`Database['${database}'] was successfully dropped`);
         if (this.onClosed) {
           if (typeof this.onClosed === 'function')
             this.onClosed();
@@ -101,7 +110,7 @@ export default class GoDB {
         const { error } = ev.target as IDBOpenDBRequest;
         const { name, message } = error;
         console.warn(
-          `Local database '${database}' deleting failed!\
+          `Unable to drop Database['${database}']\
           \n- ${name}: ${message}`
         );
         reject(`${name}: ${message}`);
@@ -125,10 +134,13 @@ export default class GoDB {
   }
 
   // Require IDBTransaction `versionchange`
-  createTable(table: string, schema: GoDBTableSchema): void {
+  updateTable(table: string, schema: GoDBTableSchema): void {
     const idb = this.idb;
-    if (!idb) return console.error(`Create table '${table}' failed: database is not opened`);
-    if (!idb.objectStoreNames.contains(table)) {
+    if (!idb) throw Error(`Failed to create Table['${table}']: database is not opened`);
+    if (idb.objectStoreNames.contains(table)) {
+      // TODO: update table schema
+    } else {
+      // create objectStore if not exist
       const objectStore = idb.createObjectStore(table, {
         keyPath: 'id',
         autoIncrement: true
@@ -142,8 +154,6 @@ export default class GoDB {
         objectStore.createIndex(index, index, { unique })
         console.log(`Index['${index}'] created in Table['${table}'], Database['${idb.name}']`)
       }
-    } else {
-      // TODO: update table schema
     }
   }
 
@@ -201,25 +211,36 @@ export default class GoDB {
     }
 
     // State `init`: opening connection to IndexedDB
+    // In case user has set a version in GoDBConfig
+    if (this.version)
+      this._openDB(this.version);
+    else
+      this._openDB();
+  }
+
+  private _openDB(version?: number) {
+
     const database = this.name;
     const tables = this.tables;
 
-    if (this.version)
-      this._connection = indexedDB.open(database, this.version);
-    else
-      this._connection = indexedDB.open(database);
+    this._connection = version
+      ? indexedDB.open(database, version)
+      : indexedDB.open(database);
 
     this._connection.onsuccess = (ev) => {
 
-      const { result } = this._connection || ev.target as IDBOpenDBRequest;
+      const result = this._connection.result
+        || (ev.target as IDBOpenDBRequest).result;
+
+      this.version = result.version;
 
       // triggered when 'onupgradeneeded' was not called
       // meaning that the database was already existed in browser
       if (!this.idb) {
         this.idb = result;
-        console.log(`Database['${database}'] existed with version (${result.version})`);
+        console.log(`Database['${database}'] with version (${result.version}) is detected`);
       }
-      console.log(`Local database '${database}' is opened!`);
+      console.log(`Open Database['${database}'] successfully`);
 
       // executing operations invoked by user at State `connecting`
       if (this._callbackQueue?.length) {
@@ -250,22 +271,12 @@ export default class GoDB {
 
       console.log(`Database['${database}'] version changed from (${oldVersion}) to (${newVersion})`);
 
-      // create a new database
-      if (oldVersion === 0 && newVersion > 0) {
-        console.log(`Database['${database}'] created with version (${newVersion})`);
-        for (let table in tables) {
-          this.createTable(table, tables[table].schema);
-        }
-      }
-
-      // TODO: database was dropped somewhere while still opening
-      else if (newVersion > 0 && newVersion === 0) {
-        console.warn(`Current opening database '${database}' was dropped`);
-      }
-
-      // TODO: schema changed
-      else if (oldVersion > 0 && newVersion > 0) {
-        console.log(`Database['${database}'] was upgraded`);
+      if (newVersion > 0) {
+        if (oldVersion === 0)
+          console.log(`Database['${database}'] created with version (${newVersion})`);
+        // make sure the IDB objectStores are identical with GoDB tables
+        for (let table in tables)
+          this.updateTable(table, tables[table].schema);
       }
 
       this.version = newVersion;
@@ -275,16 +286,16 @@ export default class GoDB {
       const { error } = ev.target as IDBOpenDBRequest;
       const { name, message } = error;
       throw Error(
-        `Local database '${database}' opening failed!`
+        `Failed to open Database['${database}']`
         + `\n- ${name}: ${message}`
       );
     };
 
     this._connection.onblocked = (ev) => {
       const { newVersion, oldVersion } = ev as IDBVersionChangeEvent;
-      throw Error(
-        `Database['${database}'] is opening somewhere with version (${oldVersion}), `
-        + `thus new opening request to version (${newVersion}) is failed.`
+      console.warn(
+        `Database['${database}'] is opening somewhere with version (${oldVersion}),`,
+        `thus new opening request to version (${newVersion}) was blocked.`
       );
     };
   }
