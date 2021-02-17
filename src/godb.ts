@@ -2,7 +2,6 @@ import GoDBTable from './table';
 import { indexedDB } from './global/window';
 import {
   GoDBConfig,
-  GoDBSchema,
   GoDBTableSchema,
   GoDBTableDict,
   GetDBCallback
@@ -65,13 +64,6 @@ export default class GoDB {
     return this.tables[table];
   }
 
-  // init the database with schema
-  // TODO: when db is not empty, clear the db, then change db version to 1
-  init(schema: GoDBSchema): void {
-    if (!schema) return console.warn('Init failed: schema is not provided');
-    if (!this.idb) return console.warn('Init failed: database is not opened yet');
-  }
-
   close(): void {
     if (this.idb) {
       this.idb.close();
@@ -116,11 +108,6 @@ export default class GoDB {
         reject(`${name}: ${message}`);
       };
     });
-  }
-
-  // TODO: backup for dangerous operations, like drop() and version change events
-  backup(): void {
-
   }
 
   getDBState(): string {
