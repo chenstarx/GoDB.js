@@ -92,19 +92,22 @@ export default class GoDB {
     }
   }
 
-  // drop a database by its name
-  // TODO: make this no-static, close the database before dropping
+  // drop a database
   drop(): Promise<Event> {
     return new Promise((resolve, reject) => {
 
-      this.close();
       const database = this.name;
+
+      this.close();
 
       // no need to handle Exception according to MDN
       const deleteRequest = indexedDB.deleteDatabase(database);
 
       deleteRequest.onsuccess = (ev) => {
-        console.log(`Database['${database}'] was successfully dropped`);
+
+        this.version = 0;
+        console.log(`Database['${database}'] is successfully dropped`);
+
         if (this.onClosed) {
 
           if (typeof this.onClosed === 'function')
