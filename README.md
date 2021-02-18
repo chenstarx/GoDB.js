@@ -15,14 +15,17 @@ IndexedDB with Intuitive API, CRUD with one line of code.
 
 TODO：
 
-- [ ] If database or table is existed, check the schema when init
-- [ ] Table creating after db is connected
-- [ ] Key-Value mode, like localStorage
+- [x] Table creating after db is connected
+- [x] If database or table is existed, check the db structure when init
+    - [x] update db structure when it is not matching with schema
+- [x] Make sure `schema` is matching with database structure
+- [x] Creating table from exisiting objectStore when table is not defined in schema
+- [ ] A universal `Table.do()` for code simplify, and open IndexedDB objectStore operations to user
 - [ ] Global error handler for Exceptions
+- [ ] Key-Value mode, like localStorage
 - [ ] `Table.update()`
 - [ ] Check `schema` in CRUD operation if `schema` is defined
     - [ ] only adding fields that were defined in `schema`
-- [ ] Make sure `schema` is identical with database structure
 
 
 Star this project if you think it is helpful, thanks~
@@ -46,10 +49,7 @@ import GoDB from 'godb';
 const testDB = new GoDB('testDB');
 const user = testDB.table('user');
 
-const data = {
-  name: 'luke',
-  age: 22
-}
+const data = { name: 'luke', age: 22 };
 
 user.add(data) // Create
   .then(luke => user.get(luke.id)) // Read
@@ -60,14 +60,8 @@ user.add(data) // Create
 If you want to add many data at once:
 ``` javascript
 const data = [
-    {
-        name: 'luke',
-        age: 22
-    },
-    {
-        name: 'elaine',
-        age: 23
-    }
+    { name: 'luke', age: 22 },
+    { name: 'elaine', age: 23 }
 ];
 
 user.addMany(data).then(() => user.consoleTable());
@@ -89,14 +83,8 @@ When you want to find some data in a table, you can use `Table.find()`
 
 ```javascript
 const data = [
-    {
-        name: 'luke',
-        age: 22
-    },
-    {
-        name: 'elaine',
-        age: 23
-    }
+    { name: 'luke', age: 22 },
+    { name: 'elaine', age: 23 }
 ];
 
 user.addMany(data)
@@ -150,14 +138,11 @@ const schema = {
 const testDB = new GoDB('testDB', { schema }); // { schema: schema }
 const user = testDB.table('user');
 
-const data = {
-    name: 'luke'
-    age: 22
-};
+const data = { name: 'luke', age: 22 };
 
 user.add(data) // OK
   .then(() => user.get({ name: 'luke' })) // index as search criteria
-  .then(luke => user.add(luke)) // ERROR, since the name should be unique
+  .then(luke => user.add(luke)); // ERROR, since the name should be unique
 ```
 
 When schema is defined, you can use the defined indexes as search criteria in the
@@ -171,6 +156,8 @@ If `schema` is defined, `GoDB` will check the data structure in operations like 
 
 In short, `GoDB` will behave like MongoDB when the
 `schema` was not provided, but like MySQL if `schema` was defined.
+
+### Table Schema
 
 You can also define the schema when creating table:
 
