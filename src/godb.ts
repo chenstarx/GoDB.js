@@ -103,10 +103,13 @@ export default class GoDB {
       deleteRequest.onsuccess = (ev) => {
         console.log(`Database['${database}'] was successfully dropped`);
         if (this.onClosed) {
+
           if (typeof this.onClosed === 'function')
             this.onClosed();
           else
             console.warn(`'onClosed' should be a function, not ${typeof this.onClosed}`);
+
+          this.onClosed = null;
         }
         resolve(ev);
       };
@@ -234,10 +237,13 @@ export default class GoDB {
 
         // call onOpened if it is defined by user
         if (this.onOpened) {
+
           if (typeof this.onOpened === 'function')
             this.onOpened(this.idb);
           else
             console.warn(`'onOpened' should be a function, not ${typeof this.onOpened}`);
+
+          this.onOpened = null;
         }
       }
     };
