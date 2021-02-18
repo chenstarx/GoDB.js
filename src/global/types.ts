@@ -36,6 +36,7 @@ export type TableIndexTypes =
 
 export interface TableIndex {
   type: TableIndexTypes
+  multiEntry?: boolean
   unique?: boolean
   default?: any
   ref?: string
