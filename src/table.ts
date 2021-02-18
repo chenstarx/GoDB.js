@@ -21,10 +21,7 @@ export default class GoDBTable {
     this.godb = godb;
     this.name = name;
 
-    this.schema = schema ? {
-      id: Number,
-      ...schema
-    } : {};
+    this.schema = schema;
 
   }
 
@@ -282,7 +279,7 @@ export default class GoDBTable {
               delete data[cursor.key].id;
               cursor.continue();
             } else {
-              console.log(`Data in Table['${this.name}'] with limit of ${limit}:`);
+              console.log(`Data in Table['${this.name}'] of Database['${this.godb.name}'], limit ${limit}:`);
               console.table(data);
               resolve();
             }
