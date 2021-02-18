@@ -223,6 +223,12 @@ export default class GoDB {
         console.log(`Database['${database}'] with version (${result.version}) is exisiting`);
       }
 
+      // @ts-ignore
+      for (let name of this.idb.objectStoreNames) {
+        if (!this.tables[name])
+          this.tables[name] = new GoDBTable(this, name);
+      }
+
       // `stopUpgrade` is used to avoid infinite recursion
       if (this._shouldUpgrade() && !stopUpgrade) {
         // make sure the objectStores structure are matching with schema
