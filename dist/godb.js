@@ -69,7 +69,7 @@ var GoDBTable = /** @class */ (function () {
     function GoDBTable(godb, name, schema) {
         this.godb = godb;
         this.name = name;
-        this.schema = schema ? __assign({ id: Number }, schema) : {};
+        this.schema = schema || null;
     }
     // TODO: check if criteria's key fits schema
     GoDBTable.prototype.get = function (criteria) {
@@ -321,7 +321,7 @@ var GoDBTable = /** @class */ (function () {
                             cursor["continue"]();
                         }
                         else {
-                            console.log("Data in Table['" + _this.name + "'] with limit of " + limit + ":");
+                            console.log("Data in Table['" + _this.name + "'] of Database['" + _this.godb.name + "'], limit " + limit + ":");
                             console.table(data_3);
                             resolve();
                         }
@@ -345,6 +345,7 @@ var indexedDB = global.indexedDB ||
 var GoDB = /** @class */ (function () {
     function GoDB(name, config) {
         // init params
+        this.version = 0;
         this.tables = {};
         this._callbackQueue = [];
         // save database's name
@@ -354,27 +355,40 @@ var GoDB = /** @class */ (function () {
             var schema = config.schema, version = config.version;
             if (version)
                 this.version = version;
-            // init tables
-            for (var table in schema)
-                this.tables[table] = new GoDBTable(this, table, schema[table]);
+            // init tables, `this.idb` is null when init
+            this.updateSchema(schema);
         }
         // open connection to the IndexedDB
         this.getDB();
     }
     GoDB.prototype.table = function (table, tableSchema) {
         if (!this.tables[table]) {
-            if (this.idb && tableSchema && typeof tableSchema === 'object') ;
             this.tables[table] = new GoDBTable(this, table, tableSchema);
+            this.updateSchema();
+        }
+        else if (tableSchema) {
+            this.tables[table] = new GoDBTable(this, table, tableSchema);
+            if (this._shouldUpgrade())
+                this.updateSchema();
         }
         return this.tables[table];
     };
-    // init the database with schema
-    // TODO: when db is not empty, clear the db, then change db version to 1
-    GoDB.prototype.init = function (schema) {
-        if (!schema)
-            return console.warn('Init failed: schema is not provided');
-        if (!this.idb)
-            return console.warn('Init failed: database is not opened yet');
+    GoDB.prototype.updateSchema = function (schema) {
+        if (schema) {
+            this.tables = {};
+            for (var table in schema)
+                this.tables[table] = new GoDBTable(this, table, schema[table]);
+        }
+        if (this.idb) {
+            console.log("Updating Schema in Database['" + this.name + "']");
+            // create new objectStores when database is already opened
+            this.idb.close();
+            // activate callbackQueue in getDB()
+            // and avoid repeating calling _openDB() before db's opening
+            this.idb = null;
+            // triger `onupgradeneeded` event in _openDB() to update objectStores
+            this._openDB(++this.version, true);
+        }
     };
     GoDB.prototype.close = function () {
         if (this.idb) {
@@ -382,10 +396,10 @@ var GoDB = /** @class */ (function () {
             this.idb = null;
             this._connection = null;
             this._closed = true;
-            console.log("Connection to '" + this.idb.name + "' is closed");
+            console.log("A connection to Database['" + this.name + "'] is closed");
         }
         else {
-            console.warn('Unable to close: database is not opened');
+            console.warn("Unable to close Database['" + this.name + "']: it is not opened yet");
         }
     };
     // drop a database by its name
@@ -398,25 +412,23 @@ var GoDB = /** @class */ (function () {
             // no need to handle Exception according to MDN
             var deleteRequest = indexedDB.deleteDatabase(database);
             deleteRequest.onsuccess = function (ev) {
-                console.log("Local database '" + database + "' is successfully dropped!");
+                console.log("Database['" + database + "'] was successfully dropped");
                 if (_this.onClosed) {
                     if (typeof _this.onClosed === 'function')
                         _this.onClosed();
                     else
                         console.warn("'onClosed' should be a function, not " + typeof _this.onClosed);
+                    _this.onClosed = null;
                 }
                 resolve(ev);
             };
             deleteRequest.onerror = function (ev) {
                 var error = ev.target.error;
                 var name = error.name, message = error.message;
-                console.warn("Local database '" + database + "' deleting failed!          \n- " + name + ": " + message);
+                console.warn("Unable to drop Database['" + database + "']          \n- " + name + ": " + message);
                 reject(name + ": " + message);
             };
         });
-    };
-    // TODO: backup for dangerous operations, like drop() and version change events
-    GoDB.prototype.backup = function () {
     };
     GoDB.prototype.getDBState = function () {
         if (this._closed)
@@ -426,26 +438,6 @@ var GoDB = /** @class */ (function () {
         if (this._connection)
             return 'connecting';
         return 'init';
-    };
-    // Require IDBTransaction `versionchange`
-    GoDB.prototype.createTable = function (table, schema) {
-        var idb = this.idb;
-        if (!idb)
-            return console.error("Create table '" + table + "' failed: database is not opened");
-        if (!idb.objectStoreNames.contains(table)) {
-            var objectStore = idb.createObjectStore(table, {
-                keyPath: 'id',
-                autoIncrement: true
-            });
-            console.log("Table['" + table + "'] created in Database['" + idb.name + "']");
-            for (var index in schema) {
-                if (index === 'id')
-                    continue;
-                var unique = !!schema[index]['unique'];
-                objectStore.createIndex(index, index, { unique: unique });
-                console.log("Index['" + index + "'] created in Table['" + table + "'], Database['" + idb.name + "']");
-            }
-        }
     };
     /**
      * It is necessary to get `IDBDatabase` instance (`this.idb`) before
@@ -472,97 +464,186 @@ var GoDB = /** @class */ (function () {
      *  mention that the db's opening only takes a few milliseconds,
      *  and normally most of user's table operations will happen after db's opening
      *
-     * Attention: callback is async in state 1 and 2,
-     * but being sync in state 3
+     * State sequence:
+     * init -> connecting -> opened -> closed
+     *
+     * Attention: callback is async-called in state `init` and `connecting`,
+     * but being sync-called in state `opened`
      */
     GoDB.prototype.getDB = function (callback) {
+        // State `opened`: db is opened, calling callback synchronously with IDBDatabase instance
+        if (this.idb) {
+            if (callback && typeof callback === 'function')
+                callback(this.idb);
+            return;
+        }
+        // State `closed`: db is closed
+        if (this._closed) {
+            console.warn("Database['" + this.name + "'] is closed, operations will not be executed");
+            return;
+        }
+        // State `connecting`: connection is opened, but db is not opened yet
+        if (this._connection) {
+            if (callback && typeof callback === 'function')
+                this._callbackQueue.push(callback);
+            return;
+        }
+        // State `init`: opening connection to IndexedDB
+        // In case user has set a version in GoDBConfig
+        if (this.version)
+            this._openDB(this.version);
+        else
+            this._openDB();
+    };
+    GoDB.prototype._openDB = function (version, stopUpgrade) {
         var _this = this;
-        // return function for corresponding state
-        return ({
-            // unable `getDB` if db was closed
-            closed: function () {
-                console.warn('getDB failed: database is closed');
-            },
-            // State `opened`: db is opened, callback is sync in this case
-            opened: function () {
-                if (callback && typeof callback === 'function')
-                    callback(_this.idb);
-            },
-            // State `connecting`: connection opened, but db not opened yet
-            connecting: function () {
-                if (callback && typeof callback === 'function')
-                    _this._callbackQueue.push(callback);
-            },
-            // State `init`: no connection yet
-            init: function () {
-                // ONLY EXECUTED ONCE IN CONSTRUCTOR
-                var database = _this.name;
-                var tables = _this.tables;
-                if (_this.version)
-                    _this._connection = indexedDB.open(database, _this.version);
-                else
-                    _this._connection = indexedDB.open(database);
-                _this._connection.onsuccess = function (ev) {
-                    var _a;
-                    var result = (_this._connection || ev.target).result;
-                    // triggered when 'onupgradeneeded' was not called
-                    // meaning that the database was already existed in browser
-                    if (!_this.idb) {
-                        _this.idb = result;
-                        console.log("Database['" + database + "'] existed with version (" + result.version + ")");
-                    }
-                    console.log("Local database '" + database + "' is opened!");
-                    // executing operations invoked by user at State 2
-                    if ((_a = _this._callbackQueue) === null || _a === void 0 ? void 0 : _a.length) {
-                        _this._callbackQueue.forEach(function (fn) { return fn(_this.idb); });
-                    }
-                    // call onOpened if it is defined by user
-                    if (_this.onOpened) {
-                        if (typeof _this.onOpened === 'function')
-                            _this.onOpened(_this.idb);
-                        else
-                            console.warn("'onOpened' should be a function, not " + typeof _this.onOpened);
-                    }
-                    // The code below is actually not necessary,
-                    //  cuz it will only be invoked in the constructor,
-                    //  and constructor's `getDB` has no callback
-                    // if (callback && typeof callback === 'function')
-                    //   callback(result);
-                };
-                // called every time when db version changed
-                _this._connection.onupgradeneeded = function (ev) {
-                    var oldVersion = ev.oldVersion, newVersion = ev.newVersion, target = ev.target;
-                    // get database instance
-                    _this.idb = target.result;
-                    console.log("Database['" + database + "'] version changed from (" + oldVersion + ") to (" + newVersion + ")");
-                    // create a new database
-                    if (oldVersion === 0 && newVersion > 0) {
-                        console.log("Database['" + database + "'] created with version (" + newVersion + ")");
-                        for (var table in tables) {
-                            _this.createTable(table, tables[table].schema);
-                        }
-                    }
-                    // TODO: database was dropped somewhere while still opening
-                    else if (newVersion > 0 && newVersion === 0) {
-                        console.warn("Current opening database '" + database + "' was dropped");
-                    }
-                    // TODO: schema changed
-                    else if (oldVersion > 0 && newVersion > 0) {
-                        console.log("Database['" + database + "'] was upgraded");
-                    }
-                    _this.version = newVersion;
-                };
-                _this._connection.onerror = function (ev) {
-                    var error = ev.target.error;
-                    var name = error.name, message = error.message;
-                    throw Error("Local database '" + database + "' opening failed!            \n- " + name + ": " + message);
-                };
-                _this._connection.onblocked = function (ev) {
-                    var _a = ev, newVersion = _a.newVersion, oldVersion = _a.oldVersion;
-                    throw Error("Database['" + database + "'] is opening somewhere with version (" + oldVersion + ")            thus new opening request to version (" + newVersion + ") is failed.");
-                };
+        var database = this.name;
+        var tables = this.tables;
+        this._connection = version
+            ? indexedDB.open(database, version)
+            : indexedDB.open(database);
+        this._connection.onsuccess = function (ev) {
+            var result = _this._connection.result
+                || ev.target.result;
+            _this.version = result.version;
+            // triggered when 'onupgradeneeded' was not called
+            // meaning that the database was already existed in browser
+            if (!_this.idb) {
+                _this.idb = result;
+                console.log("Database['" + database + "'] with version (" + result.version + ") is exisiting");
             }
-        }[this.getDBState()])();
+            // @ts-ignore
+            for (var _i = 0, _a = _this.idb.objectStoreNames; _i < _a.length; _i++) {
+                var name_1 = _a[_i];
+                if (!_this.tables[name_1])
+                    _this.tables[name_1] = new GoDBTable(_this, name_1);
+            }
+            // `stopUpgrade` is used to avoid infinite recursion
+            if (_this._shouldUpgrade() && !stopUpgrade) {
+                // make sure the objectStores structure are matching with schema
+                _this.updateSchema();
+            }
+            else {
+                console.log("A connection to Database['" + database + "'] is opening");
+                // executing operations invoked by user at State `connecting`
+                if (_this._callbackQueue.length) {
+                    _this._callbackQueue.forEach(function (fn) { return fn(_this.idb); });
+                    _this._callbackQueue = [];
+                }
+                // call onOpened if it is defined by user
+                if (_this.onOpened) {
+                    if (typeof _this.onOpened === 'function')
+                        _this.onOpened(_this.idb);
+                    else
+                        console.warn("'onOpened' should be a function, not " + typeof _this.onOpened);
+                    _this.onOpened = null;
+                }
+            }
+        };
+        // called when db version changed
+        // it is called before `onsuccess`
+        this._connection.onupgradeneeded = function (ev) {
+            var oldVersion = ev.oldVersion, newVersion = ev.newVersion, target = ev.target;
+            var transaction = target.transaction;
+            // get database instance
+            _this.idb = target.result;
+            _this.version = newVersion;
+            if (oldVersion === 0)
+                console.log("Creating Database['" + database + "'] with version (" + newVersion + ")");
+            // make sure the IDB objectStores structure are matching with GoDB tables' schema
+            for (var table in tables)
+                _this._updateObjectStore(table, tables[table].schema, transaction);
+            if (oldVersion !== 0)
+                console.log("Database['" + database + "'] version changed from (" + oldVersion + ") to (" + newVersion + ")");
+        };
+        this._connection.onerror = function (ev) {
+            var error = ev.target.error;
+            var name = error.name, message = error.message;
+            throw Error("Failed to open Database['" + database + "']"
+                + ("\n- " + name + ": " + message));
+        };
+        this._connection.onblocked = function (ev) {
+            var _a = ev, newVersion = _a.newVersion, oldVersion = _a.oldVersion;
+            console.warn("Database['" + database + "'] is opening somewhere with version (" + oldVersion + "),", "thus new opening request to version (" + newVersion + ") was blocked.");
+        };
+    };
+    // check if it is needed to update the objectStores in a existing database
+    // return true when objectStores structure are not matching with the schema
+    //  - objectStore (table) is not existing
+    //  - table schema has one or more index that objectStore do not have
+    //  - index properties are different from which defined in schema
+    GoDB.prototype._shouldUpgrade = function () {
+        var idb = this.idb;
+        if (!idb)
+            return false;
+        var tables = this.tables;
+        for (var table in tables) {
+            // check if objectStores is existing
+            if (idb.objectStoreNames.contains(table)) {
+                var transaction = idb.transaction(table, 'readonly');
+                var _a = transaction.objectStore(table), indexNames = _a.indexNames, keyPath = _a.keyPath, autoIncrement = _a.autoIncrement;
+                // if the keyPath is not 'id', or it is not autoIncrement
+                if (keyPath !== 'id' || !autoIncrement) {
+                    this.close();
+                    throw Error("The current existing objectStore '" + table + "' in IndexedDB '" + this.name + "'"
+                        + (" has a " + (autoIncrement ? '' : 'non-') + "autoIncrement keyPath `" + keyPath + "`,")
+                        + " while GoDB requires an autoIncrement keyPath `id`,"
+                        + (" thus GoDB can not open Database['" + this.name + "']"));
+                }
+                for (var index in tables[table].schema) {
+                    // check if the objectStore has the index
+                    if (indexNames.contains(index)) ;
+                    else {
+                        // closing the transaction to avoid db's `blocked` event when upgrading
+                        transaction.abort();
+                        return true;
+                    }
+                }
+                transaction.abort();
+            }
+            else {
+                return true;
+            }
+        }
+        return false;
+    };
+    // applying the schema to corresponding IndexedDB objectStores to setup indexes
+    // require IDBTransaction `versionchange`
+    // it can only be called in `onupgradeneeded`
+    GoDB.prototype._updateObjectStore = function (table, schema, transaction) {
+        var idb = this.idb;
+        if (!idb)
+            return;
+        var putIndex = function (index, store, update) {
+            if (index === 'id')
+                return;
+            if (update)
+                store.deleteIndex(index);
+            store.createIndex(index, index, {
+                unique: !!schema[index]['unique'],
+                multiEntry: !!schema[index]['multiEntry']
+            });
+            console.log((update ? 'Updating' : 'Creating') + " Index['" + index + "']", "in Table['" + table + "'], Database['" + idb.name + "']");
+        };
+        if (idb.objectStoreNames.contains(table)) {
+            // objectStore is existing, update its indexes
+            var store = transaction.objectStore(table);
+            var indexNames = store.indexNames;
+            // if the objectStore contains an index, update the index
+            // if not, create a new index in the objectStore
+            for (var index in this.tables[table].schema)
+                putIndex(index, store, indexNames.contains(index));
+        }
+        else {
+            // create objectStore if not exist
+            var store = idb.createObjectStore(table, {
+                keyPath: 'id',
+                autoIncrement: true
+            });
+            console.log("Creating Table['" + table + "'] in Database['" + idb.name + "']");
+            for (var index in schema)
+                putIndex(index, store);
+        }
     };
     return GoDB;
 }());

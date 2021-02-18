@@ -16,6 +16,7 @@ declare type TableFindFunction = (item?: GoDBData) => boolean;
 declare type TableIndexTypes = NumberConstructor | StringConstructor | BooleanConstructor | DateConstructor | ObjectConstructor | ArrayConstructor;
 interface TableIndex {
     type: TableIndexTypes;
+    multiEntry?: boolean;
     unique?: boolean;
     default?: any;
     ref?: string;
@@ -38,13 +39,13 @@ declare class GoDBTable {
     name: string;
     godb: GoDB;
     schema: GoDBTableSchema;
-    constructor(godb: GoDB, name: string, schema: GoDBTableSchema);
+    constructor(godb: GoDB, name: string, schema?: GoDBTableSchema);
     get(criteria: GoDBTableSearch | number): Promise<GoDBData>;
     add(data: GoDBInputData): Promise<GoDBData>;
     addMany(data: Array<GoDBInputData>): Promise<Array<GoDBData>>;
     put(data: GoDBData): Promise<GoDBData>;
     update(): void;
-    delete(criteria: GoDBTableSearch): Promise<void>;
+    delete(criteria: GoDBTableSearch | number): Promise<void>;
     find(fn: TableFindFunction): Promise<GoDBData>;
     findAll(fn: TableFindFunction): Promise<Array<GoDBData>>;
     where(): void;
@@ -63,12 +64,10 @@ declare class GoDB$1 {
     onClosed: Function;
     constructor(name: string, config?: GoDBConfig);
     table(table: string, tableSchema?: GoDBTableSchema): GoDBTable;
-    init(schema: GoDBSchema): void;
+    updateSchema(schema?: GoDBSchema): void;
     close(): void;
     drop(): Promise<Event>;
-    backup(): void;
     getDBState(): string;
-    createTable(table: string, schema: GoDBTableSchema): void;
     /**
      * It is necessary to get `IDBDatabase` instance (`this.idb`) before
      *  table operations like table.add(), table.get(), etc.
@@ -94,10 +93,16 @@ declare class GoDB$1 {
      *  mention that the db's opening only takes a few milliseconds,
      *  and normally most of user's table operations will happen after db's opening
      *
-     * Attention: callback is async in state 1 and 2,
-     * but being sync in state 3
+     * State sequence:
+     * init -> connecting -> opened -> closed
+     *
+     * Attention: callback is async-called in state `init` and `connecting`,
+     * but being sync-called in state `opened`
      */
     getDB(callback?: GetDBCallback): void;
+    private _openDB;
+    private _shouldUpgrade;
+    private _updateObjectStore;
 }
 
 export default GoDB$1;
