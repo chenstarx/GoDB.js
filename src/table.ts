@@ -16,12 +16,12 @@ export default class GoDBTable {
   godb: GoDB;
   schema: GoDBTableSchema;
 
-  constructor(godb: GoDB, name: string, schema: GoDBTableSchema) {
+  constructor(godb: GoDB, name: string, schema?: GoDBTableSchema) {
 
     this.godb = godb;
     this.name = name;
 
-    this.schema = schema;
+    this.schema = schema || null;
 
   }
 
