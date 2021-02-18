@@ -55,6 +55,9 @@ export default class GoDB {
     if (!this.tables[table]) {
       this.tables[table] = new GoDBTable(this, table, tableSchema);
       this.updateSchema();
+    } else if (tableSchema)  {
+      this.tables[table] = new GoDBTable(this, table, tableSchema);
+      if (this._shouldUpgrade()) this.updateSchema();
     }
     return this.tables[table];
   }
@@ -290,6 +293,9 @@ export default class GoDB {
 
   // check if it is needed to update the objectStores in a existing database
   // return true when objectStores structure are not matching with the schema
+  //  - objectStore (table) is not existing
+  //  - table schema has one or more index that objectStore do not have
+  //  - index properties are different from which defined in schema
   private _shouldUpgrade(): boolean {
     const idb = this.idb;
     if (!idb) return false;
