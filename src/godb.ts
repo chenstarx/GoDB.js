@@ -69,8 +69,8 @@ export default class GoDB {
         this.tables[table] = new GoDBTable(this, table, schema[table]);
     }
     if (this.idb) {
-      console.log(`Updating Schema in Database['${this.name}']`);
       // create new objectStores when database is already opened
+      console.log(`Updating Schema of Database['${this.name}']`);
       this.idb.close();
       // activate callbackQueue in getDB()
       // and avoid repeating calling _openDB() before db's opening
@@ -234,14 +234,14 @@ export default class GoDB {
 
       // `stopUpgrade` is used to avoid infinite recursion
       if (this._shouldUpgrade() && !stopUpgrade) {
-        // make sure the objectStores structure are matching with schema
+        // make sure the objectStores structure are matching with the Schema
         this.updateSchema();
 
       } else {
 
         console.log(`A connection to Database['${database}'] is opening`);
 
-        // executing operations invoked by user at State `connecting`
+        // executing Table operations invoked by user at State `connecting`
         if (this._callbackQueue.length) {
           this._callbackQueue.forEach(fn => fn(this.idb));
           this._callbackQueue = [];
@@ -260,20 +260,20 @@ export default class GoDB {
       }
     };
 
-    // called when db version changed
+    // called when db version is changing
     // it is called before `onsuccess`
     this._connection.onupgradeneeded = (ev) => {
       const { oldVersion, newVersion, target } = ev;
       const { transaction } = target as IDBOpenDBRequest;
 
-      // get database instance
+      // get IndexedDB database instance
       this.idb = (target as IDBOpenDBRequest).result;
       this.version = newVersion;
 
       if (oldVersion === 0)
         console.log(`Creating Database['${database}'] with version (${newVersion})`);
 
-      // make sure the IDB objectStores structure are matching with GoDB tables' schema
+      // make sure the IDB objectStores structure are matching with GoDB Tables' Schema
       for (let table in tables)
         this._updateObjectStore(table, tables[table].schema, transaction);
 
