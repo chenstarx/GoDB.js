@@ -1,5 +1,5 @@
 import {
-  GoDB,
+  GoDBClass,
   GoDBData,
   GoDBInputData,
   GoDBTableSchema,
@@ -13,10 +13,10 @@ import {
 export default class GoDBTable {
 
   name: string;
-  godb: GoDB;
+  godb: GoDBClass;
   schema: GoDBTableSchema;
 
-  constructor(godb: GoDB, name: string, schema?: GoDBTableSchema) {
+  constructor(godb: GoDBClass, name: string, schema?: GoDBTableSchema) {
 
     this.godb = godb;
     this.name = name;

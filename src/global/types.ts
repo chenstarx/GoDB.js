@@ -1,12 +1,11 @@
-import GoDBClass from '../godb';
-import GoDBTableClass from '../table';
+import GoDB from '../godb';
+import GoDBTable from '../table';
 
 type PrimitiveType = number | string | boolean | null;
 type GoDBDataType = PrimitiveType | object;
 
-export type GoDB = GoDBClass;
-
-export type GoDBTable = GoDBTableClass;
+export type GoDBClass = GoDB;
+export type GoDBTableClass = GoDBTable;
 
 export interface GoDBData {
   id: number,
