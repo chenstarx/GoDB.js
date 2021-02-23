@@ -11,7 +11,7 @@ function crudTest(dbName) {
     }
   };
 
-  const db = new GoDB(dbName, { schema });
+  const db = new GoDB(dbName, schema);
   const user = db.table('user');
 
   crud();

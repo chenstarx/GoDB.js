@@ -25,7 +25,7 @@ export default class GoDB {
   onOpened: Function;
   onClosed: Function;
 
-  constructor(name: string, config?: GoDBConfig) {
+  constructor(name: string, schema?: GoDBSchema, config?: GoDBConfig) {
 
     // init params
     this.version = 0;
@@ -38,14 +38,14 @@ export default class GoDB {
     // settings
     if (config) {
 
-      const { schema, version } = config;
+      const { version } = config;
 
       if (version) this.version = version;
 
-      // init tables, `this.idb` is null when init
-      this.updateSchema(schema);
-
     }
+
+    // init tables, `this.idb` is null when init
+    this.updateSchema(schema);
 
     // open connection to the IndexedDB
     this.getDB();

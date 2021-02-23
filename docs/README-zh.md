@@ -87,14 +87,8 @@ user.add(data) // 增
 
 ```javascript
 const data = [
-    {
-        name: 'luke',
-        age: 22
-    },
-    {
-        name: 'elaine',
-        age: 23
-    }
+    { name: 'luke', age: 22 },
+    { name: 'elaine', age: 23 }
 ];
 
 user.addMany(data)
@@ -134,14 +128,8 @@ user.addMany(data)
 
 ```javascript
 const data = [
-    {
-        name: 'luke',
-        age: 22
-    },
-    {
-        name: 'elaine',
-        age: 23
-    }
+    { name: 'luke', age: 22 },
+    { name: 'elaine', age: 23 }
 ];
 
 user.addMany(data)
@@ -185,7 +173,7 @@ const schema = {
     }
 }
 
-const testDB = new GoDB('testDB', { schema }); // 等价于 { schema: schema }
+const testDB = new GoDB('testDB', schema);
 const user = testDB.table('user');
 
 const data = {
@@ -263,7 +251,7 @@ const user = testDB.table('user', {
 ```javascript
 import GoDB from 'godb';
 
-const db = new GoDB('testDB', { schema });
+const db = new GoDB('testDB', schema);
 const user = db.table('user', {
     name: {
       type: String,
@@ -277,14 +265,8 @@ crud();
 async function crud() {
   // 增:
   await user.addMany([
-    {
-      name: 'luke',
-      age: 22
-    },
-    {
-      name: 'elaine',
-      age: 23
-    }
+    { name: 'luke', age: 22 },
+    { name: 'elaine', age: 23 }
   ]);
 
   console.log('add user: luke');

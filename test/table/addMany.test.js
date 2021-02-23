@@ -13,7 +13,7 @@ function addManyTest(dbName) {
 
   const data = [];
 
-  const db = new GoDB(dbName, { schema });
+  const db = new GoDB(dbName, schema);
   const user = db.table('user');
 
   for(let i = 0; i < 10000; i++) {

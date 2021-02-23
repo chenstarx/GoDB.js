@@ -44,7 +44,6 @@ export interface TableIndex {
 
 export interface GoDBConfig {
   version?: number
-  schema?: GoDBSchema
 }
 
 export interface GoDBTableSchema {

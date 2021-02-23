@@ -15,7 +15,7 @@ IndexedDB with Intuitive API, CRUD with one line of code.
 
 TODO：
 
-- [x] Table creating after db is connected
+- [x] Table creating when db is opening
 - [x] If database or table is existed, check the db structure when init
     - [x] update db structure when it is not matching with schema
 - [x] Make sure `schema` is matching with database structure
@@ -135,7 +135,7 @@ const schema = {
     }
 }
 
-const testDB = new GoDB('testDB', { schema }); // { schema: schema }
+const testDB = new GoDB('testDB', schema);
 const user = testDB.table('user');
 
 const data = { name: 'luke', age: 22 };
