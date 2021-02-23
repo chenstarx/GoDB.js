@@ -1,6 +1,7 @@
 declare type PrimitiveType = number | string | boolean | null;
 declare type GoDBDataType = PrimitiveType | object;
-declare type GoDB = GoDB$1;
+declare type GoDBClass = GoDB;
+declare type GoDBTableClass = GoDBTable;
 interface GoDBData {
     id: number;
     [key: string]: GoDBDataType | Array<GoDBDataType>;
@@ -23,7 +24,6 @@ interface TableIndex {
 }
 interface GoDBConfig {
     version?: number;
-    schema?: GoDBSchema;
 }
 interface GoDBTableSchema {
     [key: string]: TableIndex | TableIndexTypes;
@@ -32,14 +32,14 @@ interface GoDBSchema {
     [table: string]: GoDBTableSchema;
 }
 interface GoDBTableDict {
-    [table: string]: GoDBTable;
+    [table: string]: GoDBTableClass;
 }
 
 declare class GoDBTable {
     name: string;
-    godb: GoDB;
+    godb: GoDBClass;
     schema: GoDBTableSchema;
-    constructor(godb: GoDB, name: string, schema?: GoDBTableSchema);
+    constructor(godb: GoDBClass, name: string, schema?: GoDBTableSchema);
     get(criteria: GoDBTableSearch | number): Promise<GoDBData>;
     add(data: GoDBInputData): Promise<GoDBData>;
     addMany(data: Array<GoDBInputData>): Promise<Array<GoDBData>>;
@@ -52,7 +52,7 @@ declare class GoDBTable {
     consoleTable(limit?: number): Promise<void>;
 }
 
-declare class GoDB$1 {
+declare class GoDB {
     name: string;
     version: number;
     idb: IDBDatabase;
@@ -62,7 +62,7 @@ declare class GoDB$1 {
     private _callbackQueue;
     onOpened: Function;
     onClosed: Function;
-    constructor(name: string, config?: GoDBConfig);
+    constructor(name: string, schema?: GoDBSchema, config?: GoDBConfig);
     table(table: string, tableSchema?: GoDBTableSchema): GoDBTable;
     updateSchema(schema?: GoDBSchema): void;
     close(): void;
@@ -105,4 +105,4 @@ declare class GoDB$1 {
     private _updateObjectStore;
 }
 
-export default GoDB$1;
+export default GoDB;

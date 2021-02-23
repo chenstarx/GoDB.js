@@ -343,7 +343,7 @@ var indexedDB = global.indexedDB ||
     global.msIndexedDB;
 
 var GoDB = /** @class */ (function () {
-    function GoDB(name, config) {
+    function GoDB(name, schema, config) {
         // init params
         this.version = 0;
         this.tables = {};
@@ -352,12 +352,12 @@ var GoDB = /** @class */ (function () {
         this.name = name;
         // settings
         if (config) {
-            var schema = config.schema, version = config.version;
+            var version = config.version;
             if (version)
                 this.version = version;
-            // init tables, `this.idb` is null when init
-            this.updateSchema(schema);
         }
+        // init tables, `this.idb` is null when init
+        this.updateSchema(schema);
         // open connection to the IndexedDB
         this.getDB();
     }
@@ -380,8 +380,8 @@ var GoDB = /** @class */ (function () {
                 this.tables[table] = new GoDBTable(this, table, schema[table]);
         }
         if (this.idb) {
-            console.log("Updating Schema in Database['" + this.name + "']");
             // create new objectStores when database is already opened
+            console.log("Updating Schema of Database['" + this.name + "']");
             this.idb.close();
             // activate callbackQueue in getDB()
             // and avoid repeating calling _openDB() before db's opening
@@ -402,17 +402,17 @@ var GoDB = /** @class */ (function () {
             console.warn("Unable to close Database['" + this.name + "']: it is not opened yet");
         }
     };
-    // drop a database by its name
-    // TODO: make this no-static, close the database before dropping
+    // drop a database
     GoDB.prototype.drop = function () {
         var _this = this;
         return new Promise(function (resolve, reject) {
-            _this.close();
             var database = _this.name;
+            _this.close();
             // no need to handle Exception according to MDN
             var deleteRequest = indexedDB.deleteDatabase(database);
             deleteRequest.onsuccess = function (ev) {
-                console.log("Database['" + database + "'] was successfully dropped");
+                _this.version = 0;
+                console.log("Database['" + database + "'] is successfully dropped");
                 if (_this.onClosed) {
                     if (typeof _this.onClosed === 'function')
                         _this.onClosed();
@@ -520,12 +520,12 @@ var GoDB = /** @class */ (function () {
             }
             // `stopUpgrade` is used to avoid infinite recursion
             if (_this._shouldUpgrade() && !stopUpgrade) {
-                // make sure the objectStores structure are matching with schema
+                // make sure the objectStores structure are matching with the Schema
                 _this.updateSchema();
             }
             else {
                 console.log("A connection to Database['" + database + "'] is opening");
-                // executing operations invoked by user at State `connecting`
+                // executing Table operations invoked by user at State `connecting`
                 if (_this._callbackQueue.length) {
                     _this._callbackQueue.forEach(function (fn) { return fn(_this.idb); });
                     _this._callbackQueue = [];
@@ -540,17 +540,17 @@ var GoDB = /** @class */ (function () {
                 }
             }
         };
-        // called when db version changed
+        // called when db version is changing
         // it is called before `onsuccess`
         this._connection.onupgradeneeded = function (ev) {
             var oldVersion = ev.oldVersion, newVersion = ev.newVersion, target = ev.target;
             var transaction = target.transaction;
-            // get database instance
+            // get IndexedDB database instance
             _this.idb = target.result;
             _this.version = newVersion;
             if (oldVersion === 0)
                 console.log("Creating Database['" + database + "'] with version (" + newVersion + ")");
-            // make sure the IDB objectStores structure are matching with GoDB tables' schema
+            // make sure the IDB objectStores structure are matching with GoDB Tables' Schema
             for (var table in tables)
                 _this._updateObjectStore(table, tables[table].schema, transaction);
             if (oldVersion !== 0)
