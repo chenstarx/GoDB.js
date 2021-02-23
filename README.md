@@ -2,20 +2,22 @@ English | [中文文档](docs/README-zh.md)
 # GoDB.js
 
 IndexedDB with Intuitive API, CRUD with one line of code.
-![godb-logo](https://cdn.liqi.tech/godb/godb.png)
+
+
+![godb-logo](https://cdn.liqi.tech/godb/godb-full.png)
 
 
 
-**Warining**: this project is currently in Alpha status, which means:
+**Warining**: this project is currently in Beta status, which means:
 
-- The software is not stable enough for production
-- Some APIs might have breaking changes in the future.
-
+- Do not use it in any serious project
+- The designed features are not fully implemented yet
+- The APIs might have breaking changes in the future
 
 
 TODO：
 
-- [x] Table creating when db is opening
+- [x] Creating objectStore by upgrading db after db's opening
 - [x] If database or table is existed, check the db structure when init
     - [x] update db structure when it is not matching with schema
 - [x] Make sure `schema` is matching with database structure
@@ -23,7 +25,7 @@ TODO：
 - [ ] A universal `Table.do()` for code simplify, and open IndexedDB objectStore operations to user
 - [ ] Global error handler for Exceptions
 - [ ] Key-Value mode, like localStorage
-- [ ] `Table.update()`
+- [ ] A better `Table.update()` option to replace `Table.put()`
 - [ ] Check `schema` in CRUD operation if `schema` is defined
     - [ ] only adding fields that were defined in `schema`
 
