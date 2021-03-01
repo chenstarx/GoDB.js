@@ -7,13 +7,15 @@
     <body>
       <h2>Press F12 before starting test</h2>
       <input oninput="inputChanged(this)" id="input" type="text" placeholder="Enter database name" /><br/>
-      <button onclick="addManyTest(dbName)">Test addMany</button><br/>
       <button onclick="crudTest(dbName)">Test CRUD</button><br/>
-      <button onclick="findTest(dbName)">Test Find</button><br/>
-      <button onclick="findAllTest(dbName)">Test Find All</button><br/>
-      <button onclick="getDBTest(dbName)">Test getDB</button>
+      <button onclick="getAllTest(dbName)">Test getAll()</button><br/>
+      <button onclick="getDBTest(dbName)">Test getDB()</button><br/>
+      <button onclick="findTest(dbName)">Test find()</button>
+      <button onclick="findAllTest(dbName)">Test findAll()</button><br/>
+      <button onclick="addManyTest(dbName)">Test addMany()</button><br/>
     </body>
     <script src="../dist/godb.min.js"></script>
+    <script src="./table/getAll.test.js"></script>
     <script src="./table/addMany.test.js"></script>
     <script src="./table/crud.test.js"></script>
     <script src="./table/find.test.js"></script>
