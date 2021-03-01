@@ -75,6 +75,35 @@ export default class GoDBTable {
     });
   }
 
+  getAll(limit?: number): Promise<GoDBData[]> {
+    return new Promise((resolve, reject) => {
+      this.godb.getDB((idb) => {
+        try {
+          const store = idb
+            .transaction(this.name, 'readonly')
+            .objectStore(this.name);
+
+          const request = limit
+            ? store.getAll(null, limit)
+            : store.getAll();
+
+          request.onsuccess = (e) => {
+            const { result } = e.target as IDBRequest;
+            resolve(result);
+          };
+
+          request.onerror = (e) => {
+            const { error } = e.target as IDBRequest;
+            reject(error);
+          };
+
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+  }
+
   // TODO: check data's schema
   // resolve: id of added item
   add(data: GoDBInputData): Promise<GoDBData> {
@@ -110,7 +139,7 @@ export default class GoDBTable {
 
   // TODO FIX: the order might be unexpected when
   //  `addMany` and `add` were executing at the same time
-  addMany(data: Array<GoDBInputData>): Promise<Array<GoDBData>> {
+  addMany(data: GoDBInputData[]): Promise<GoDBData[]> {
     return new Promise(async (resolve, reject) => {
       if (Array.isArray(data)) {
         const arr = [];
@@ -222,7 +251,7 @@ export default class GoDBTable {
   }
 
   // return all results by a find function
-  findAll(fn: TableFindFunction): Promise<Array<GoDBData>> {
+  findAll(fn: TableFindFunction): Promise<GoDBData[]> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         try {
