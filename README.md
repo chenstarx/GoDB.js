@@ -168,21 +168,25 @@ GoDB will raise a `versionchange` transaction, and upgrade the db's version, sin
 
 ```javascript
 const testDB = new GoDB('testDB');
+// open table here will not lead to db's upgrading
+// because db is not opening at this time due to JS's event loop
+const user = testDB.table('user');
 
-setTimeout(() => {
-  // db is already opened after 1000ms
+testDB.onOpened = () => {
+  // db is opening after 1000ms
   console.log(testDB.version); // 1
 
-  // creating multiple tables only require upgrade once
-  const user = testDB.table('user');
-  const user = testDB.table('message');
+  // open table after db's opening will lead to db's upgrading
+  // open multiple tables at once only require upgrading once
+  const message = testDB.table('message');
+  const contact = testDB.table('contact');
 
   setTimeout(() => {
-    // another setTimeout to wait for upgrading
-    console.log(testDB.version); // 2, upgraded
+    // setTimeout to wait for upgrading
+    console.log(testDB.version); // 2
   }, 1000);
 
-}, 1000);
+};
 ```
 
 However, if the db are opening somewhere else, the
