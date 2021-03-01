@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+        <script src="../dist/godb.min.js"></script>
+        <title>GoDB-Vue TodoList</title>
+    </head>
+    <body>
+      <div id="app">
+        <h2>GoDB-Vue TodoList</h2>
+        <input v-model="inputText" />
+        <button @click="addTodo()">Add</button>
+        <ul>
+          <li v-for="(item, index) in todos" :key="index">
+            {{ item }}
+            <button @click="deleteTodo(index)">Remove</button>
+          </li>
+        </ul>
+      </div>
+      <script>
+        new Vue({
+          el: '#app',
+          name: 'App',
+          data() {
+            return {
+              store: null,
+              inputText: '',
+              todos: []
+            }
+          },
+          created() {
+            const db = new GoDB('db')
+            this.store = db.table('todos', {
+              todo: {
+                type: String,
+                unique: true
+              }
+            })
+            this.store.getAll().then((data) => {
+              const todos = []
+              for (item of data) {
+                todos.push(item.todo)
+              }
+              this.todos = todos
+            })
+          },
+          methods: {
+            addTodo () {
+              const todo = this.inputText
+              if (!todo) return
+              this.store.add({ todo })
+                .then(() => this.todos.push(todo))
+                .catch(() => alert('existed todo!'))
+              this.inputText = ''
+            },
+            deleteTodo (index) {
+              const todo = this.todos.splice(index, 1)[0]
+              this.store.delete({ todo })
+            }
+          }
+        })
+      </script>
+    </body>
+</html>
