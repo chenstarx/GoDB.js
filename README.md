@@ -103,7 +103,7 @@ Therefore, `Table.get()` has a better performance, especially when the table is 
 
 ## Schema
 
-You can use schema to define the database structure (optional)
+You can use schema to define the database structure (recommended)
 
 ``` javascript
 import GoDB from 'godb';
@@ -135,14 +135,18 @@ user.add(data) // OK
 When schema is defined, you can use the defined indexes as search criteria in the
 `Table.get()` method.
 
-It is faster than `Table.find()`, especially when the table has huge amounts of data
+It is faster than `Table.find()`, especially when the table has huge amounts of data,
+since it uses Index to find item
 
 The design of schema is inspired by `Mongoose`
 
-If `schema` is defined, `GoDB` will check the data structure in operations like `Table.add()`: if the data structure does not fit in schema, report an error.
+**The following design is not implemented yet**
 
-In short, `GoDB` will behave like MongoDB when the
-`schema` was not provided, but like MySQL if `schema` was defined.
+If `schema` is defined, `GoDB` will check the data structure in table operations
+
+- Ignoring fields that are not existed in `schema`
+  - Unable to add data of non-existing fields
+  - Unable to get data from non-existing fields
 
 ### Table Schema
 
@@ -159,6 +163,65 @@ const user = testDB.table('user', {
 });
 ```
 
+Mention that if you create table after db's opening,
+GoDB will raise a `versionchange` transaction, and upgrade the db's version, since IndexedDB requires db upgrading to create new objectStores in an opening db
+
+```javascript
+const testDB = new GoDB('testDB');
+
+setTimeout(() => {
+  // db is already opened after 1000ms
+  console.log(testDB.version); // 1
+
+  // creating multiple tables only require upgrade once
+  const user = testDB.table('user');
+  const user = testDB.table('message');
+
+  setTimeout(() => {
+    // another setTimeout to wait for upgrading
+    console.log(testDB.version); // 2, upgraded
+  }, 1000);
+
+}, 1000);
+```
+
+However, if the db are opening somewhere else, the
+version change transaction will be blocked by browser
+
+Until all other connections were closed, the db's version will not be upgraded, and the objectStores will not be created
+
+
+```javascript
+const db1 = new GoDB('testDB');
+const db2 = new GoDB('testDB');
+
+setTimeout(() => {
+  // db is already opened after 1000ms
+  console.log(db1.version); // 1
+
+  const user = db1.table('user');
+
+  setTimeout(() => {
+    // wait for upgrading
+    console.log(db1.version); // 1, blocked!
+
+    db2.close(); // close other connections
+
+    setTimeout(() => {
+      // wait for upgrading
+      console.log(db1.version); // 2, upgraded
+
+    }, 1000);
+
+  }, 1000);
+
+}, 1000);
+```
+
+Therefore, it is **recommended** to define all the schema at the beginning in `new GoDB()`,
+where GoDB will create all the objectStores and Indexes at once
+
+
 # TODOs
 
 - [x] Creating objectStore by upgrading db after db's opening
@@ -172,3 +235,4 @@ const user = testDB.table('user', {
 - [ ] A better `Table.update()` option to replace `Table.put()`
 - [ ] Check `schema` in CRUD operation if `schema` is defined
     - [ ] only adding fields that were defined in `schema`
+- [ ] `default` and `ref` property for Index
