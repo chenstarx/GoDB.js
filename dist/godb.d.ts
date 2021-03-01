@@ -41,13 +41,14 @@ declare class GoDBTable {
     schema: GoDBTableSchema;
     constructor(godb: GoDBClass, name: string, schema?: GoDBTableSchema);
     get(criteria: GoDBTableSearch | number): Promise<GoDBData>;
+    getAll(limit?: number): Promise<GoDBData[]>;
     add(data: GoDBInputData): Promise<GoDBData>;
-    addMany(data: Array<GoDBInputData>): Promise<Array<GoDBData>>;
+    addMany(data: GoDBInputData[]): Promise<GoDBData[]>;
     put(data: GoDBData): Promise<GoDBData>;
     update(): void;
     delete(criteria: GoDBTableSearch | number): Promise<void>;
     find(fn: TableFindFunction): Promise<GoDBData>;
-    findAll(fn: TableFindFunction): Promise<Array<GoDBData>>;
+    findAll(fn: TableFindFunction): Promise<GoDBData[]>;
     where(): void;
     consoleTable(limit?: number): Promise<void>;
 }

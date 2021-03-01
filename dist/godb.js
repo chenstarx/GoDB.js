@@ -71,6 +71,16 @@ var GoDBTable = /** @class */ (function () {
         this.name = name;
         this.schema = schema || null;
     }
+    // crud(operation: GoDBTableCRUD): Promise<void | GoDBData | GoDBData[]> {
+    //   return new Promise((resolve, reject) => {
+    //     this.godb.getDB((idb) => {
+    //       try {
+    //       } catch (err) {
+    //         reject(err);
+    //       }
+    //     });
+    //   });
+    // }
     // TODO: check if criteria's key fits schema
     GoDBTable.prototype.get = function (criteria) {
         var _this = this;
@@ -107,6 +117,32 @@ var GoDBTable = /** @class */ (function () {
                     else {
                         reject(new Error('Table.get() failed: invalid criteria'));
                     }
+                }
+                catch (err) {
+                    reject(err);
+                }
+            });
+        });
+    };
+    GoDBTable.prototype.getAll = function (limit) {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            _this.godb.getDB(function (idb) {
+                try {
+                    var store = idb
+                        .transaction(_this.name, 'readonly')
+                        .objectStore(_this.name);
+                    var request = limit
+                        ? store.getAll(null, limit)
+                        : store.getAll();
+                    request.onsuccess = function (e) {
+                        var result = e.target.result;
+                        resolve(result);
+                    };
+                    request.onerror = function (e) {
+                        var error = e.target.error;
+                        reject(error);
+                    };
                 }
                 catch (err) {
                     reject(err);
