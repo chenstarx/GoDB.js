@@ -51,7 +51,9 @@ const data = [
     { name: 'elaine', age: 23 }
 ];
 
-user.addMany(data).then(() => user.consoleTable());
+await user.addMany(data);
+
+user.consoleTable();
 ```
 
 The method `user.consoleTable()` will print the `user` table in console:
@@ -74,14 +76,14 @@ const data = [
     { name: 'elaine', age: 23 }
 ];
 
-user.addMany(data)
-  .then(() => {
-    user.find(item => {
-      return item.age > 22;
-    })
-      .then(result => console.log(result));
-      // { name: 'elaine', age: 23 }
-  });
+await user.addMany(data);
+
+const result = await user.find((item) => {
+    return item.age > 22
+});
+
+console.log(result);
+// { name: 'elaine', age: 23 }
 ```
 
 The usage is very similar to JavaScript's `Array.find()`
@@ -173,18 +175,18 @@ const testDB = new GoDB('testDB');
 const user = testDB.table('user');
 
 testDB.onOpened = () => {
-  // db is opening after 1000ms
-  console.log(testDB.version); // 1
+    // db is opening after 1000ms
+    console.log(testDB.version); // 1
 
-  // open table after db's opening will lead to db's upgrading
-  // open multiple tables at once only require upgrading once
-  const message = testDB.table('message');
-  const contact = testDB.table('contact');
+    // open table after db's opening will lead to db's upgrading
+    // open multiple tables at once only require upgrading once
+    const message = testDB.table('message');
+    const contact = testDB.table('contact');
 
-  setTimeout(() => {
-    // setTimeout to wait for upgrading
-    console.log(testDB.version); // 2
-  }, 1000);
+    setTimeout(() => {
+        // setTimeout to wait for upgrading
+        console.log(testDB.version); // 2
+    }, 1000);
 
 };
 ```
@@ -201,23 +203,23 @@ const db2 = new GoDB('testDB');
 
 setTimeout(() => {
   // db is already opened after 1000ms
-  console.log(db1.version); // 1
+    console.log(db1.version); // 1
 
-  const user = db1.table('user');
-
-  setTimeout(() => {
-    // wait for upgrading
-    console.log(db1.version); // 1, blocked!
-
-    db2.close(); // close other connections
+    const user = db1.table('user');
 
     setTimeout(() => {
-      // wait for upgrading
-      console.log(db1.version); // 2, upgraded
+        // wait for upgrading
+        console.log(db1.version); // 1, blocked!
+
+        db2.close(); // close other connections
+
+        setTimeout(() => {
+          // wait for upgrading
+          console.log(db1.version); // 2, upgraded
+
+        }, 1000);
 
     }, 1000);
-
-  }, 1000);
 
 }, 1000);
 ```
@@ -233,10 +235,12 @@ where GoDB will create all the objectStores and Indexes at once
     - [x] update db structure when it is not matching with schema
 - [x] Make sure `schema` is matching with database structure
 - [x] Creating table from exisiting objectStore when table is not defined in schema
-- [ ] A universal `Table.do()` for code simplify, and open IndexedDB objectStore operations to user
+- [ ] A universal `Table.do()` for code simplify
+  - [ ] Opening IndexedDB objectStore operations to developers
 - [ ] Global error handler for Exceptions
 - [ ] Key-Value mode, like localStorage
 - [ ] A better `Table.update()` option to replace `Table.put()`
 - [ ] Check `schema` in CRUD operation if `schema` is defined
-    - [ ] only adding fields that were defined in `schema`
+    - [ ] only adding data which has defined fields in `schema`
+    - [ ] only extracting data which has defined fields in `schema`
 - [ ] `default` and `ref` property for Index
