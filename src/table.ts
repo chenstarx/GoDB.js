@@ -5,7 +5,7 @@ import {
   GoDBTableSchema,
   GoDBTableSearch,
   TableFindFunction
-} from './global/types';
+} from './interface/types';
 
 // TODO: GLOBAL ERROR HANDLER
 // TODO: optimizing for duplicated codes, make a global promise to handle error
@@ -14,7 +14,7 @@ export default class GoDBTable {
 
   name: string;
   godb: GoDBClass;
-  schema: GoDBTableSchema;
+  schema: GoDBTableSchema | null;
 
   constructor(godb: GoDBClass, name: string, schema?: GoDBTableSchema) {
 
@@ -142,7 +142,7 @@ export default class GoDBTable {
   addMany(data: GoDBInputData[]): Promise<GoDBData[]> {
     return new Promise(async (resolve, reject) => {
       if (Array.isArray(data)) {
-        const arr = [];
+        const arr: GoDBData[] = [];
         for (let item of data) {
           arr.push(await this.add(item));
         }
@@ -225,7 +225,7 @@ export default class GoDBTable {
   }
 
   // find by a function
-  find(fn: TableFindFunction): Promise<GoDBData> {
+  find(fn: TableFindFunction): Promise<GoDBData | null> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         try {
@@ -251,7 +251,7 @@ export default class GoDBTable {
   }
 
   // return all results by a find function
-  findAll(fn: TableFindFunction): Promise<GoDBData[]> {
+  findAll(find: TableFindFunction): Promise<GoDBData[]> {
     return new Promise((resolve, reject) => {
       this.godb.getDB((idb) => {
         try {
@@ -259,13 +259,14 @@ export default class GoDBTable {
             .transaction(this.name, 'readonly')
             .objectStore(this.name);
 
-          const data = [];
+          const data: GoDBData[] = [];
 
           store.openCursor().onsuccess = (e) => {
             const cursor = (e.target as IDBRequest).result;
             if (cursor) {
-              if (fn(cursor.value))
+              if (find(cursor.value)) {
                 data.push(cursor.value);
+              }
               cursor.continue();
             } else {
               resolve(data);

@@ -13,17 +13,17 @@ export default class GoDB {
   name: string;
   version: number;
 
-  idb: IDBDatabase;
+  idb: IDBDatabase | null;
   tables: GoDBTableDict;
 
   private _closed: boolean;
-  private _connection: IDBOpenDBRequest;
+  private _connection: IDBOpenDBRequest | null;
   private _callbackQueue: Array<Function>;
 
   // defined by user:
   // TODO: DBChangeFunction
-  onOpened: Function;
-  onClosed: Function;
+  onOpened: Function | null;
+  onClosed: Function | null;
 
   constructor(name: string, schema?: GoDBSchema, config?: GoDBConfig) {
 
@@ -122,7 +122,7 @@ export default class GoDB {
 
       deleteRequest.onerror = (ev) => {
         const { error } = ev.target as IDBOpenDBRequest;
-        const { name, message } = error;
+        const { name, message } = error || {};
         console.warn(
           `Unable to drop Database['${database}']\
           \n- ${name}: ${message}`
@@ -214,10 +214,10 @@ export default class GoDB {
 
     this._connection.onsuccess = (ev) => {
 
-      const result = this._connection.result
-        || (ev.target as IDBOpenDBRequest).result;
+      const result = this._connection?.result
+        || (ev.target as IDBOpenDBRequest)?.result;
 
-      this.version = result.version;
+      this.version = result?.version || version || 1;
 
       // triggered when 'onupgradeneeded' was not called
       // meaning that the database was already existed in browser
@@ -268,14 +268,14 @@ export default class GoDB {
 
       // get IndexedDB database instance
       this.idb = (target as IDBOpenDBRequest).result;
-      this.version = newVersion;
+      this.version = newVersion || oldVersion;
 
       if (oldVersion === 0)
         console.log(`Creating Database['${database}'] with version (${newVersion})`);
 
       // make sure the IDB objectStores structure are matching with GoDB Tables' Schema
       for (let table in tables)
-        this._updateObjectStore(table, tables[table].schema, transaction);
+        this._updateObjectStore(table, tables[table]?.schema || {}, transaction);
 
       if (oldVersion !== 0)
         console.log(`Database['${database}'] version changed from (${oldVersion}) to (${newVersion})`);
@@ -284,7 +284,7 @@ export default class GoDB {
 
     this._connection.onerror = (ev) => {
       const { error } = ev.target as IDBOpenDBRequest;
-      const { name, message } = error;
+      const { name, message } = error || {};
       throw Error(
         `Failed to open Database['${database}']`
         + `\n- ${name}: ${message}`
@@ -349,10 +349,10 @@ export default class GoDB {
   // applying the schema to corresponding IndexedDB objectStores to setup indexes
   // require IDBTransaction `versionchange`
   // it can only be called in `onupgradeneeded`
-  private _updateObjectStore(table: string, schema: GoDBTableSchema, transaction: IDBTransaction): void {
+  private _updateObjectStore(table: string, schema: GoDBTableSchema, transaction: IDBTransaction | null): void {
 
     const idb = this.idb;
-    if (!idb) return;
+    if (!idb || !transaction) return;
 
     const putIndex = (index: string, store: IDBObjectStore, update?: boolean) => {
 
