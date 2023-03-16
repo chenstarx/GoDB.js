@@ -6,7 +6,7 @@ import {
   GoDBTableDict,
   GetDBCallback,
   GoDBSchema
-} from './global/types';
+} from './interface/types';
 
 export default class GoDB {
 
